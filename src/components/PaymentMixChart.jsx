@@ -7,7 +7,8 @@ const PaymentMixChart = ({ transactions = [] }) => {
         const mix = transactions.reduce((acc, tx) => {
             if (tx.type === 'INCOME') {
                 const method = tx.method || 'Otros';
-                acc[method] = (acc[method] || 0) + 1;
+                // Use amount instead of count (+1)
+                acc[method] = (acc[method] || 0) + tx.amount;
             }
             return acc;
         }, {});
@@ -19,6 +20,8 @@ const PaymentMixChart = ({ transactions = [] }) => {
             'Efectivo': '#05CD99', // Success Green
             'Tarjeta': '#4318FF',  // Primary Blue
             'Transferencia': '#11CDEF', // Info Cyan
+            'Divisas': '#FFB547', // Orange
+            'Pago Móvil': '#E6007A', // Pink
             'Otros': '#A3AED0'
         };
 

@@ -53,8 +53,12 @@ const Analytics = () => {
     const currentYear = now.getFullYear();
     const monthlyIncome = transactions
         .filter(tx => {
-            const d = new Date(tx.date);
-            return tx.type === 'INCOME' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            if (!tx.date) return false;
+            const dateStr = typeof tx.date === 'string' ? tx.date.split('T')[0] : '';
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const dObj = new Date(y, m - 1, d);
+
+            return tx.type === 'INCOME' && dObj.getMonth() === currentMonth && dObj.getFullYear() === currentYear;
         })
         .reduce((acc, curr) => acc + curr.amount, 0);
 
@@ -62,9 +66,21 @@ const Analytics = () => {
     // A better curve would be in the chart, but for a single number this works as "Worst Case"
     const minLiquidity = balance - scheduledPaymentsTotal;
 
-    // 4. Daily Average (Income / Days elapsed in month)
-    const daysElapsed = now.getDate(); // 1-31
-    const dailyAverage = daysElapsed > 0 ? monthlyIncome / daysElapsed : 0;
+    // 4. Daily Average (Sumatoria total de cada venta / la cantidad de ventas registradas)
+    const monthlyTransactionsCount = transactions.filter(tx => {
+        if (!tx.date) return false;
+        // Robust parsing: "YYYY-MM-DD" -> split
+        const dateStr = typeof tx.date === 'string' ? tx.date.split('T')[0] : '';
+        const [y, m, d] = dateStr.split('-').map(Number);
+        // Note: m is 1-indexed in string but 0-indexed in Date, but here we compare vs getMonth (0-indexed)
+        // actually easier: just compare month/year directly from string if format is reliable, 
+        // OR construct Date(y, m-1, d) to be safe with standard Date methods
+        const dObj = new Date(y, m - 1, d);
+
+        return tx.type === 'INCOME' && dObj.getMonth() === currentMonth && dObj.getFullYear() === currentYear;
+    }).length;
+
+    const dailyAverage = monthlyTransactionsCount > 0 ? monthlyIncome / monthlyTransactionsCount : 0;
 
     return (
         <div className="flex flex-col gap-8 h-full">

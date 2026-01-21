@@ -42,22 +42,29 @@ const CalendarPage = () => {
     const days = [];
     // Previous month filler
     for (let i = firstDayOfMonth - 1; i >= 0; i--) {
-        days.push({ date: daysInPrevMonth - i, currentMonth: false, fullDate: new Date(year, month - 1, daysInPrevMonth - i) });
+        days.push({ date: daysInPrevMonth - i, currentMonth: false, fullDate: new Date(year, month - 1, daysInPrevMonth - i, 12, 0, 0) });
     }
     // Current month
     for (let i = 1; i <= daysInMonth; i++) {
-        days.push({ date: i, currentMonth: true, fullDate: new Date(year, month, i) });
+        days.push({ date: i, currentMonth: true, fullDate: new Date(year, month, i, 12, 0, 0) });
     }
     // Next month filler
     const remainingCells = 42 - days.length; // 6 rows * 7 cols
     for (let i = 1; i <= remainingCells; i++) {
-        days.push({ date: i, currentMonth: false, fullDate: new Date(year, month + 1, i) });
+        days.push({ date: i, currentMonth: false, fullDate: new Date(year, month + 1, i, 12, 0, 0) });
     }
 
     // Helper to find bills for a specific date
     const getBillsForDate = (dateObj) => {
         return bills.filter(bill => {
-            const billDate = new Date(bill.dueDate);
+            if (!bill.dueDate) return false;
+            // Parse YYYY-MM-DD explicitly to avoid timezone issues
+            // Safe split to handle "YYYY-MM-DD" or "YYYY-MM-DDT..."
+            const dateStr = typeof bill.dueDate === 'string' ? bill.dueDate.split('T')[0] : '';
+            const [y, m, d] = dateStr.split('-').map(Number);
+            // Construct date at NOON (12:00) to be safe from midnight timezone shifts
+            const billDate = new Date(y, m - 1, d, 12, 0, 0); // Month is 0-indexed
+
             return bill.status === 'PENDING' && // Filter to only show pending
                 billDate.getDate() === dateObj.getDate() &&
                 billDate.getMonth() === dateObj.getMonth() &&

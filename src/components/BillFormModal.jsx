@@ -8,7 +8,8 @@ const BillFormModal = ({ onClose, onBillAdded }) => {
         title: '',
         provider: '',
         amount: '',
-        dueDate: new Date().toISOString().split('T')[0]
+        // Use local date for default value to prevent UTC offset issues
+        dueDate: new Date().toLocaleDateString('en-CA')
     });
 
     const handleChange = (e) => {

@@ -21,11 +21,20 @@ export const api = {
             const snapshot = await getDocs(q);
             return snapshot.docs.map(doc => {
                 const data = doc.data();
+
+                let dateStr = data.date;
+                // Handle legacy Timestamp or Date objects
+                if (data.date?.toDate) {
+                    dateStr = data.date.toDate().toISOString().split('T')[0];
+                } else if (typeof data.date === 'object' || (typeof data.date === 'string' && data.date.includes('T'))) {
+                    dateStr = new Date(data.date).toISOString().split('T')[0];
+                }
+
                 return {
                     id: doc.id,
                     ...data,
                     // Handle Timestamp to Date conversion safely
-                    date: data.date?.toDate ? data.date.toDate().toISOString() : new Date(data.date).toISOString(),
+                    date: dateStr,
                     createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
                 };
             });
@@ -40,7 +49,8 @@ export const api = {
             const newTransaction = {
                 ...data,
                 amount: parseFloat(data.amount),
-                date: data.date ? new Date(data.date) : new Date(),
+                // Save as string "YYYY-MM-DD" directly if provided, else current date string
+                date: data.date ? data.date : new Date().toISOString().split('T')[0],
                 createdAt: new Date()
             };
             const docRef = await addDoc(collection(db, 'transactions'), newTransaction);
@@ -82,10 +92,20 @@ export const api = {
             const snapshot = await getDocs(q);
             return snapshot.docs.map(doc => {
                 const data = doc.data();
+                let dueDate = data.dueDate;
+
+                // Handle legacy Timestamp or Date objects
+                if (data.dueDate?.toDate) {
+                    dueDate = data.dueDate.toDate().toISOString().split('T')[0];
+                } else if (typeof data.dueDate === 'object' || (typeof data.dueDate === 'string' && data.dueDate.includes('T'))) {
+                    // If it's an ISO string or Date object string result
+                    dueDate = new Date(data.dueDate).toISOString().split('T')[0];
+                }
+
                 return {
                     id: doc.id,
                     ...data,
-                    dueDate: data.dueDate?.toDate ? data.dueDate.toDate().toISOString() : new Date(data.dueDate).toISOString()
+                    dueDate // Should be "YYYY-MM-DD"
                 };
             });
         } catch (error) {
@@ -99,7 +119,7 @@ export const api = {
             const newBill = {
                 ...data,
                 amount: parseFloat(data.amount),
-                dueDate: new Date(data.dueDate),
+                dueDate: data.dueDate, // Save as string "YYYY-MM-DD" directly
                 status: 'PENDING',
                 createdAt: new Date()
             };
@@ -113,8 +133,7 @@ export const api = {
 
     getUpcomingBill: async () => {
         try {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const today = new Date().toISOString().split('T')[0];
 
             const q = query(
                 collection(db, 'bills'),
@@ -129,10 +148,18 @@ export const api = {
 
             const doc = snapshot.docs[0];
             const data = doc.data();
+
+            let dueDate = data.dueDate;
+            if (data.dueDate?.toDate) {
+                dueDate = data.dueDate.toDate().toISOString().split('T')[0];
+            } else if (typeof data.dueDate === 'object' || (typeof data.dueDate === 'string' && data.dueDate.includes('T'))) {
+                dueDate = new Date(data.dueDate).toISOString().split('T')[0];
+            }
+
             return {
                 id: doc.id,
                 ...data,
-                dueDate: data.dueDate?.toDate ? data.dueDate.toDate().toISOString() : new Date(data.dueDate).toISOString()
+                dueDate
             };
         } catch (error) {
             console.error("Error fetching upcoming bill:", error);
@@ -152,7 +179,7 @@ export const api = {
 
     updateBill: async (id, data) => {
         const updateData = { ...data };
-        if (updateData.dueDate) updateData.dueDate = new Date(updateData.dueDate);
+        // Do NOT convert dueDate to Date object
 
         await updateDoc(doc(db, 'bills', id), updateData);
         return { id, ...updateData };

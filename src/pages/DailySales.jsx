@@ -34,11 +34,13 @@ const DailySales = () => {
 
     // Group transactions by date
     const groupedTransactions = transactions.reduce((groups, tx) => {
-        const date = new Date(tx.date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        if (!groups[date]) {
-            groups[date] = [];
+        // Use the raw string "YYYY-MM-DD" as key to guarantee no timezone shifts
+        const dateStr = typeof tx.date === 'string' ? tx.date.split('T')[0] : 'Sin Fecha';
+
+        if (!groups[dateStr]) {
+            groups[dateStr] = [];
         }
-        groups[date].push(tx);
+        groups[dateStr].push(tx);
         return groups;
     }, {});
 
@@ -57,17 +59,27 @@ const DailySales = () => {
                 <div className="text-center py-10 opacity-50">Cargando ventas...</div>
             ) : (
                 <div className="flex flex-col gap-8">
-                    {Object.entries(groupedTransactions).map(([date, txs]) => {
+                    {Object.entries(groupedTransactions).map(([dateStr, txs]) => {
+                        // Create display date from YYYY-MM-DD key using Noon Strategy
+                        // This assumes dateStr is "YYYY-MM-DD"
+                        let dateDisplay = dateStr;
+                        if (dateStr.includes('-')) {
+                            const [y, m, d] = dateStr.split('-').map(Number);
+                            // Noon to be safe
+                            const dateObj = new Date(y, m - 1, d, 12, 0, 0);
+                            dateDisplay = dateObj.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        }
+
                         const dailyTotal = txs
                             .filter(t => t.type === 'INCOME')
                             .reduce((sum, t) => sum + t.amount, 0);
 
                         return (
-                            <div key={date} className="card bg-white shadow-sm rounded-2xl overflow-hidden border border-gray-100">
+                            <div key={dateStr} className="card bg-white shadow-sm rounded-2xl overflow-hidden border border-gray-100">
                                 <div className="bg-gray-50/50 p-4 border-b border-gray-100 flex justify-between items-center">
                                     <div className="flex items-center gap-2">
                                         <Calendar size={18} className="text-primary" />
-                                        <h3 className="font-bold text-navy capitalize">{date}</h3>
+                                        <h3 className="font-bold text-navy capitalize">{dateDisplay}</h3>
                                     </div>
                                     <div className="text-sm font-bold text-success bg-green-50 px-3 py-1 rounded-full border border-green-100">
                                         Total: {formatCurrency(dailyTotal)}
@@ -82,7 +94,7 @@ const DailySales = () => {
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-navy text-sm">{tx.note || tx.category}</p>
-                                                    <p className="text-xs text-secondary opacity-60">{tx.method} • {new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                    <p className="text-xs text-secondary opacity-60">{tx.method} • {new Date(tx.createdAt || tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">

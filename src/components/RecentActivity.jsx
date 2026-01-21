@@ -10,20 +10,31 @@ const RecentActivity = ({ transactions = [], onTransactionDeleted }) => {
 
     // Group transactions by date
     const groupedTransactions = transactions.reduce((groups, tx) => {
-        const date = new Date(tx.date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        if (!groups[date]) {
-            groups[date] = { total: 0, transactions: [], dateObj: new Date(tx.date) };
+        // Use the raw string "YYYY-MM-DD" as key
+        const dateStr = typeof tx.date === 'string' ? tx.date.split('T')[0] : 'Sin Fecha';
+
+        // Create display date safe from timezone shifts
+        let displayDate = dateStr;
+        if (dateStr.includes('-')) {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            // Noon Strategy
+            const dObj = new Date(y, m - 1, d, 12, 0, 0);
+            displayDate = dObj.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        if (!groups[displayDate]) {
+            groups[displayDate] = { total: 0, transactions: [], rawDate: dateStr };
         }
         if (tx.type === 'INCOME') {
-            groups[date].total += tx.amount;
+            groups[displayDate].total += tx.amount;
         } else {
-            groups[date].total -= tx.amount;
+            groups[displayDate].total -= tx.amount;
         }
-        groups[date].transactions.push(tx);
+        groups[displayDate].transactions.push(tx);
         return groups;
     }, {});
 
-    const sortedDates = Object.entries(groupedTransactions).sort((a, b) => b[1].dateObj - a[1].dateObj);
+    const sortedDates = Object.entries(groupedTransactions).sort((a, b) => b[1].rawDate.localeCompare(a[1].rawDate));
 
     return (
         <div className="card w-full">

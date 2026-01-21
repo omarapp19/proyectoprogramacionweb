@@ -9,11 +9,13 @@ const SalesForm = ({ onSaleAdded }) => {
     const [amounts, setAmounts] = useState({
         Efectivo: '',
         Tarjeta: '',
-        Transferencia: ''
+        Transferencia: '',
+        Divisas: ''
     });
 
     const [commonData, setCommonData] = useState({
-        date: new Date().toISOString().split('T')[0],
+        // Use local date for default value to prevent UTC offset issues (e.g. showing tomorrow late at night)
+        date: new Date().toLocaleDateString('en-CA'), // Returns YYYY-MM-DD in local time
         note: ''
     });
 
@@ -60,7 +62,7 @@ const SalesForm = ({ onSaleAdded }) => {
             await Promise.all(promises);
 
             // Reset form
-            setAmounts({ Efectivo: '', Tarjeta: '', Transferencia: '' });
+            setAmounts({ Efectivo: '', Tarjeta: '', Transferencia: '', Divisas: '' });
             setCommonData(prev => ({ ...prev, note: '' })); // Keep date? or reset? user usually wants same date
 
             if (onSaleAdded) onSaleAdded();
@@ -139,6 +141,22 @@ const SalesForm = ({ onSaleAdded }) => {
                             onChange={(e) => handleAmountChange('Transferencia', e.target.value)}
                             placeholder="0.00"
                             className="w-full pl-4 pr-4 py-3 bg-background rounded-xl border-2 border-transparent focus:border-purple-400 focus:bg-white outline-none font-bold text-navy transition-all"
+                        />
+                    </div>
+
+                    {/* Divisas */}
+                    <div className="relative">
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="w-6 h-6 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center"><DollarSign size={14} /></div>
+                            <label className="text-xs font-bold text-secondary uppercase">Divisas</label>
+                        </div>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={amounts.Divisas}
+                            onChange={(e) => handleAmountChange('Divisas', e.target.value)}
+                            placeholder="0.00"
+                            className="w-full pl-4 pr-4 py-3 bg-background rounded-xl border-2 border-transparent focus:border-orange-400 focus:bg-white outline-none font-bold text-navy transition-all"
                         />
                     </div>
                 </div>
