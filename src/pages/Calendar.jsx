@@ -74,6 +74,14 @@ const CalendarPage = () => {
 
     const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
+    const nextMonth = () => {
+        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    };
+
+    const prevMonth = () => {
+        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    };
+
     return (
         <div className="flex h-full gap-8 overflow-hidden relative">
             <div className="flex-1 flex flex-col h-full overflow-y-auto pr-2 custom-scrollbar">
@@ -157,9 +165,9 @@ const CalendarPage = () => {
                 {/* Calendar Header */}
                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
-                        <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors"><ChevronLeft size={20} className="text-secondary" /></button>
+                        <button onClick={prevMonth} className="p-2 hover:bg-gray-50 rounded-lg transition-colors"><ChevronLeft size={20} className="text-secondary" /></button>
                         <h2 className="text-lg font-bold text-navy min-w-[140px] text-center capitalize">{monthNames[month]} {year}</h2>
-                        <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors"><ChevronRight size={20} className="text-secondary" /></button>
+                        <button onClick={nextMonth} className="p-2 hover:bg-gray-50 rounded-lg transition-colors"><ChevronRight size={20} className="text-secondary" /></button>
                     </div>
                 </div>
 

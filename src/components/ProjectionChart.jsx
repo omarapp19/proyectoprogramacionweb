@@ -19,7 +19,7 @@ const ProjectionChart = ({ balance, bills = [], dailyAverage = 0 }) => {
             currentBalance += dailyAverage;
 
             // Subtract Bills due on this day
-            const billsDue = bills.filter(b => b.status === 'PENDING' && b.dueDate.startsWith(dateStr));
+            const billsDue = bills.filter(b => b.status === 'PENDIENTE' && b.dueDate.startsWith(dateStr));
             const billsTotal = billsDue.reduce((sum, b) => sum + b.amount, 0);
 
             currentBalance -= billsTotal;

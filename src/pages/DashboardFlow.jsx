@@ -44,7 +44,7 @@ const DashboardFlow = () => {
             setNextBill(upcomingBillData);
 
             // Separate Divisas if needed
-            const divisasTxs = txData.filter(tx => tx.method === 'Divisas' && tx.type === 'INCOME');
+            const divisasTxs = txData.filter(tx => tx.method === 'Divisas' && tx.type === 'INGRESO');
             const totalDivisasAmount = divisasTxs.reduce((acc, curr) => acc + curr.amount, 0);
             setTotalDivisas(totalDivisasAmount);
 
@@ -56,8 +56,8 @@ const DashboardFlow = () => {
 
             // Recalculate Balance manually based on validTxs to be safe vs api.getBalance
             // (Since api.getBalance is likely naive)
-            const calculatedIncome = validTxs.filter(tx => tx.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0);
-            const calculatedExpense = validTxs.filter(tx => tx.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0);
+            const calculatedIncome = validTxs.filter(tx => tx.type === 'INGRESO').reduce((acc, curr) => acc + curr.amount, 0);
+            const calculatedExpense = validTxs.filter(tx => tx.type === 'GASTO').reduce((acc, curr) => acc + curr.amount, 0);
             setBalance(calculatedIncome - calculatedExpense);
 
 
@@ -72,8 +72,8 @@ const DashboardFlow = () => {
                 return (m - 1) === currentMonth && y === currentYear;
             });
 
-            const income = monthlyTxs.filter(tx => tx.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0);
-            const expenses = monthlyTxs.filter(tx => tx.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0);
+            const income = monthlyTxs.filter(tx => tx.type === 'INGRESO').reduce((acc, curr) => acc + curr.amount, 0);
+            const expenses = monthlyTxs.filter(tx => tx.type === 'GASTO').reduce((acc, curr) => acc + curr.amount, 0);
             const total = income + expenses;
 
             setStats({
@@ -98,6 +98,26 @@ const DashboardFlow = () => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
     };
 
+    const handleExport = () => {
+        if (!transactions || transactions.length === 0) {
+            alert("No hay transacciones para exportar.");
+            return;
+        }
+
+        const dataToExport = transactions.map(tx => ({
+            Fecha: tx.date || "",
+            Tipo: tx.type || "",
+            Monto: tx.amount || 0,
+            Método: tx.method || "",
+            Descripción: tx.note || tx.description || "",
+            Categoría: tx.category || ""
+        }));
+
+        import('../services/exportService').then(({ exportToExcel }) => {
+            exportToExcel(dataToExport, `transacciones_${new Date().toISOString().split('T')[0]}.xlsx`, 'Transacciones');
+        });
+    };
+
     return (
         <div className="flex flex-col gap-8 h-full">
             {/* Header & Toolbar */}
@@ -107,7 +127,10 @@ const DashboardFlow = () => {
                     <p className="text-secondary opacity-60">Resumen financiero y control de liquidez</p>
                 </div>
                 <div className="flex gap-3">
-                    <button className="btn btn-outline flex items-center gap-2 bg-white">
+                    <button
+                        className="btn btn-outline flex items-center gap-2 bg-white"
+                        onClick={handleExport}
+                    >
                         <Download size={18} />
                         Exportar
                     </button>

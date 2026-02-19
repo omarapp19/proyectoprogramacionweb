@@ -105,7 +105,7 @@ const Invoices = () => {
                                             </div>
                                         </td>
                                         <td className="p-6">
-                                            {bill.status === 'COMPLETED' || bill.status === 'PAID' ? (
+                                            {bill.status === 'COMPLETADO' || bill.status === 'PAGADO' ? (
                                                 <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-green-50 text-success">
                                                     <CheckCircle size={12} /> Pagado
                                                 </span>

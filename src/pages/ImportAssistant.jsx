@@ -40,6 +40,112 @@ const ImportAssistant = () => {
         if (file) processFile(file);
     };
 
+    const [inputValue, setInputValue] = useState("");
+
+    const handleSendMessage = () => {
+        if (!inputValue.trim()) return;
+
+        const userText = inputValue;
+        setMessages(prev => [...prev, { id: Date.now(), type: 'user', text: userText }]);
+        setInputValue("");
+        setIsTyping(true);
+
+        setTimeout(async () => {
+            let botResponse = "Lo siento, no estoy seguro de cómo responder a eso. ¿Podrías intentar preguntar de otra forma? Puedo ayudarte a importar archivos, explicarte cómo funcionan las divisas o darte un resumen financiero.";
+            const lowerText = userText.toLowerCase();
+
+            // Saludos
+            if (/hola|buenos dias|buenas tardes|buenas noches|hey/.test(lowerText)) {
+                botResponse = "¡Hola! Soy tu asistente financiero personal. ¿En qué puedo ayudarte hoy? Puedo darte tu balance, decirte cuánto debes o ayudarte a importar ventas.";
+            }
+            // Capabilidades / Ayuda
+            else if (/ayuda|que puedes hacer|qué haces|instrucciones|cómo funciona/.test(lowerText)) {
+                botResponse = `Soy tu Asistente Financiero Inteligente. Puedo:
+1. **Analizar tus Finanzas**: Pregúntame "¿cuánto gané hoy?", "¿cuál es mi balance?" o "¿tengo deudas?".
+2. **Importar Ventas**: Procesa tus archivos Excel de conciliación.
+3. **Gestión de Deudas**: Te aviso sobre facturas pendientes.
+4. **Soporte Técnico**: Respondo dudas sobre el sistema.`;
+            }
+            // Consultas Financieras REALES
+            // Balance / Saldo / Ganancia Total
+            else if (/balance|saldo|cuanto tengo|ganancia total|estado actual/.test(lowerText)) {
+                try {
+                    const balanceData = await api.getBalance();
+                    // balanceData returns { balance, totalIncome, totalExpense } purely from transactions? 
+                    // Wait, api.getBalance in api.js returns object with keys based on previous view logic?
+                    // Let's re-verify api.js content from previous step.
+                    // Yes: return { balance: totalIncome - totalExpense, totalIncome, totalExpense };
+
+                    botResponse = `💰 **Estado Financiero Actual**\n\n` +
+                        `• **Balance Global:** $${balanceData.balance.toFixed(2)}\n` +
+                        `• **Ingresos Totales:** $${balanceData.totalIncome.toFixed(2)}\n` +
+                        `• **Gastos Totales:** $${balanceData.totalExpense.toFixed(2)}\n\n` +
+                        `Tu liquidez actual es saludable. ¿Quieres ver el detalle?`;
+                } catch (e) {
+                    botResponse = "Tuve un problema consultando tu balance en tiempo real. Por favor intenta más tarde.";
+                }
+            }
+            // Deudas / Facturas Pendientes
+            else if (/deuda|debo|pagar|facturas|pendiente/.test(lowerText)) {
+                try {
+                    const bills = await api.getBills();
+                    const pendingBills = bills.filter(b => b.status === 'PENDIENTE');
+                    const totalDebt = pendingBills.reduce((acc, b) => acc + b.amount, 0);
+
+                    if (pendingBills.length === 0) {
+                        botResponse = "¡Excelentes noticias! No tienes deudas pendientes registradas en el sistema. 🎉";
+                    } else {
+                        const topBills = pendingBills.slice(0, 3).map(b => `• ${b.provider}: $${b.amount} (Vence: ${b.dueDate})`).join('\n');
+                        botResponse = `⚠️ **Resumen de Deudas**\n\n` +
+                            `Tienes **${pendingBills.length} facturas pendientes** por un total de **$${totalDebt.toFixed(2)}**.\n\n` +
+                            `Las más próximas a vencer son:\n${topBills}\n\n` +
+                            `Te recomiendo revisar la sección de 'Cuentas por Pagar'.`;
+                    }
+                } catch (e) {
+                    botResponse = "No pude acceder a tu lista de deudas en este momento.";
+                }
+            }
+            // Ventas de Hoy (Estimación básica)
+            else if (/vendi hoy|ventas de hoy|ingreso hoy/.test(lowerText)) {
+                try {
+                    const txs = await api.getTransactions();
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    // Filter manually
+                    const todaySales = txs.filter(tx =>
+                        tx.type === 'INGRESO' &&
+                        (typeof tx.date === 'string' && tx.date.startsWith(todayStr))
+                    );
+                    const todayTotal = todaySales.reduce((acc, tx) => acc + tx.amount, 0);
+
+                    botResponse = `📅 **Ventas de Hoy (${todayStr})**\n\n` +
+                        `Hasta ahora has registrado **${todaySales.length} ventas** por un total de **$${todayTotal.toFixed(2)}**.\n` +
+                        `Sigue así. 💪`;
+                } catch (e) {
+                    botResponse = "No pude calcular las ventas de hoy.";
+                }
+            }
+            // Formato de Archivo
+            else if (/formato|plantilla|columnas|excel|estructura/.test(lowerText)) {
+                botResponse = "Para importar, necesito un Excel donde cada hoja sea un día. Busco columnas como 'TOTAL EFECTIVO', 'TOTAL ZELLE', etc.";
+            }
+            // Divisas
+            else if (/divisa|dolar|zelle|tasa|cambio/.test(lowerText)) {
+                botResponse = "El sistema suma automáticamente tus ingresos en divisas (Efectivo USD + Zelle). Puedes ver el desglose en el Dashboard si activas la opción 'Incluir Divisas'.";
+            }
+            // Agradecimiento
+            else if (/gracias|ok|listo|vale|perfecto/.test(lowerText)) {
+                botResponse = "¡De nada! Estoy aquí para gestionar tus finanzas. 💼";
+            }
+
+            setMessages(prev => [...prev, { id: Date.now(), type: 'bot', text: botResponse }]);
+            setIsTyping(false);
+        }, 800);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') handleSendMessage();
+    };
+
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (file) processFile(file);
@@ -419,14 +525,25 @@ const ImportAssistant = () => {
                 onDrop={handleDrop}
             >
                 <div className="relative">
-                    <input
-                        type="text"
-                        placeholder={isDragging ? "¡Suelta el archivo aquí!" : "Sube o arrastra un archivo Excel..."}
-                        disabled
-                        className={`w-full pl-6 pr-14 py-4 rounded-xl border  text-gray-400 cursor-not-allowed
-                            ${isDragging ? 'border-primary bg-white' : 'bg-gray-50 border-gray-200'}
-                        `}
-                    />
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder={isDragging ? "¡Suelta el archivo aquí!" : "Escribe un mensaje o arrastra un archivo..."}
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            className={`flex-1 pl-6 pr-14 py-4 rounded-xl border outline-none transition-all
+                                ${isDragging ? 'border-primary bg-blue-50' : 'bg-gray-50 border-gray-200 focus:border-primary focus:bg-white'}
+                            `}
+                        />
+                        <button
+                            onClick={handleSendMessage}
+                            disabled={!inputValue.trim()}
+                            className="p-4 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <Send size={20} />
+                        </button>
+                    </div>
 
                     <input
                         type="file"

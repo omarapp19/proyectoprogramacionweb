@@ -54,9 +54,9 @@ const SalesForm = ({ onSaleAdded }) => {
                         method: method, // 'Efectivo', 'Tarjeta', 'Transferencia'
                         date: commonData.date,
                         note: commonData.note,
-                        type: 'INCOME',
+                        type: 'INGRESO',
                         category: 'Venta',
-                        status: 'COMPLETED'
+                        status: 'COMPLETADO'
                     });
                 });
 

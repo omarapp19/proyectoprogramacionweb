@@ -5,7 +5,7 @@ const PaymentMixChart = ({ transactions = [] }) => {
 
     const data = useMemo(() => {
         const mix = transactions.reduce((acc, tx) => {
-            if (tx.type === 'INCOME') {
+            if (tx.type === 'INGRESO') {
                 const method = tx.method || 'Otros';
                 // Use amount instead of count (+1)
                 acc[method] = (acc[method] || 0) + tx.amount;
@@ -33,7 +33,7 @@ const PaymentMixChart = ({ transactions = [] }) => {
         }));
     }, [transactions]);
 
-    const totalTx = transactions.filter(t => t.type === 'INCOME').length;
+    const totalTx = transactions.filter(t => t.type === 'INGRESO').length;
 
     // Custom Legend
     const renderLegend = () => {

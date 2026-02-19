@@ -48,8 +48,8 @@ const Analytics = () => {
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
 
-            const calculatedIncome = validTxs.filter(tx => tx.type === 'INCOME').reduce((acc, curr) => acc + curr.amount, 0);
-            const calculatedExpense = validTxs.filter(tx => tx.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0);
+            const calculatedIncome = validTxs.filter(tx => tx.type === 'INGRESO').reduce((acc, curr) => acc + curr.amount, 0);
+            const calculatedExpense = validTxs.filter(tx => tx.type === 'GASTO').reduce((acc, curr) => acc + curr.amount, 0);
             setBalance(calculatedIncome - calculatedExpense);
 
             const mIncome = validTxs
@@ -58,7 +58,7 @@ const Analytics = () => {
                     const dateStr = typeof tx.date === 'string' ? tx.date.split('T')[0] : '';
                     const [y, m, d] = dateStr.split('-').map(Number);
                     const dObj = new Date(y, m - 1, d);
-                    return tx.type === 'INCOME' && dObj.getMonth() === currentMonth && dObj.getFullYear() === currentYear;
+                    return tx.type === 'INGRESO' && dObj.getMonth() === currentMonth && dObj.getFullYear() === currentYear;
                 })
                 .reduce((acc, curr) => acc + curr.amount, 0);
             setMonthlyIncome(mIncome);
@@ -99,6 +99,26 @@ const Analytics = () => {
 
     // 4. Daily Average (Used from State)
 
+    const handleExport = () => {
+        if (!transactions || transactions.length === 0) {
+            alert("No hay datos para exportar.");
+            return;
+        }
+
+        const dataToExport = transactions.map(tx => ({
+            Fecha: tx.date || "",
+            Tipo: tx.type || "",
+            Monto: tx.amount || 0,
+            Método: tx.method || "",
+            Nota: tx.note || "",
+            Categoría: tx.category || ""
+        }));
+
+        import('../services/exportService').then(({ exportToExcel }) => {
+            exportToExcel(dataToExport, `analiticas_${new Date().toISOString().split('T')[0]}.xlsx`, 'Data');
+        });
+    };
+
     return (
         <div className="flex flex-col gap-8 h-full">
             {/* Header */}
@@ -112,7 +132,10 @@ const Analytics = () => {
                         <button className="px-3 py-1 text-xs font-bold bg-secondary text-white rounded-md">Próximos 30 días</button>
                         <button className="px-3 py-1 text-xs font-medium text-secondary hover:bg-gray-50 rounded-md">Mes Pasado</button>
                     </div>
-                    <button className="btn btn-outline flex items-center gap-2 bg-white text-xs">
+                    <button
+                        onClick={handleExport}
+                        className="btn btn-outline flex items-center gap-2 bg-white text-xs"
+                    >
                         <Download size={14} />
                         Exportar
                     </button>

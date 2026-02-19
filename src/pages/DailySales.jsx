@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, DollarSign, ArrowUpRight, ArrowDownRight, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, DollarSign, ArrowUpRight, ArrowDownRight, Trash2, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { api } from '../services/api';
 import { db } from '../firebase';
 import { writeBatch, doc } from 'firebase/firestore';
@@ -99,11 +99,33 @@ const DailySales = () => {
 
     return (
         <div className="flex flex-col gap-6">
-            <div>
-                <h1 className="text-2xl font-bold text-navy">Ventas Diarias</h1>
-                <p className="text-secondary opacity-60">Registro detallado de transacciones por día</p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-2xl font-bold text-navy">Ventas Diarias</h1>
+                    <p className="text-secondary opacity-60">Registro detallado de transacciones por día</p>
+                </div>
+                <div>
+                    <button
+                        onClick={() => {
+                            const dataToExport = transactions.map(tx => ({
+                                Fecha: tx.date || "",
+                                Tipo: tx.type || "",
+                                Monto: tx.amount || 0,
+                                Método: tx.method || "",
+                                Nota: tx.note || "",
+                                Categoría: tx.category || ""
+                            }));
+                            import('../services/exportService').then(({ exportToExcel }) => {
+                                exportToExcel(dataToExport, `ventas_diarias_${new Date().toISOString().split('T')[0]}.xlsx`);
+                            });
+                        }}
+                        className="btn btn-outline flex items-center gap-2 bg-white text-xs"
+                    >
+                        <Download size={14} />
+                        Exportar Todo
+                    </button>
+                </div>
             </div>
-
             {loading ? (
                 <div className="text-center py-10 opacity-50">Cargando ventas...</div>
             ) : (
@@ -119,7 +141,7 @@ const DailySales = () => {
                         }
 
                         const dailyTotal = txs
-                            .filter(t => t.type === 'INCOME')
+                            .filter(t => t.type === 'INGRESO')
                             .reduce((sum, t) => sum + t.amount, 0);
 
                         return (
@@ -146,8 +168,8 @@ const DailySales = () => {
                                     {txs.map((tx, idx) => (
                                         <div key={tx.id} className={`flex justify-between items-center p-4 ${idx !== txs.length - 1 ? 'border-b border-gray-50' : ''} hover:bg-gray-50/30 transition-colors group`}>
                                             <div className="flex items-center gap-4">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'INCOME' ? 'bg-green-50 text-success' : 'bg-red-50 text-danger'}`}>
-                                                    {tx.type === 'INCOME' ? <ArrowUpRight size={20} /> : <ArrowDownRight size={20} />}
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'INGRESO' ? 'bg-green-50 text-success' : 'bg-red-50 text-danger'}`}>
+                                                    {tx.type === 'INGRESO' ? <ArrowUpRight size={20} /> : <ArrowDownRight size={20} />}
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-navy text-sm">{tx.note || tx.category}</p>
@@ -155,8 +177,8 @@ const DailySales = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <div className={`font-bold ${tx.type === 'INCOME' ? 'text-success' : 'text-danger'}`}>
-                                                    {tx.type === 'INCOME' ? '+' : '-'}{formatCurrency(tx.amount)}
+                                                <div className={`font-bold ${tx.type === 'INGRESO' ? 'text-success' : 'text-danger'}`}>
+                                                    {tx.type === 'INGRESO' ? '+' : '-'}{formatCurrency(tx.amount)}
                                                 </div>
                                                 <button
                                                     onClick={() => handleDelete(tx.id)}

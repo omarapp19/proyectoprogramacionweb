@@ -70,8 +70,8 @@ export const api = {
 
             snapshot.forEach(doc => {
                 const data = doc.data();
-                if (data.type === 'INCOME') totalIncome += (data.amount || 0);
-                if (data.type === 'EXPENSE') totalExpense += (data.amount || 0);
+                if (data.type === 'INGRESO') totalIncome += (data.amount || 0);
+                if (data.type === 'GASTO') totalExpense += (data.amount || 0);
             });
 
             return {
@@ -120,7 +120,7 @@ export const api = {
                 ...data,
                 amount: parseFloat(data.amount),
                 dueDate: data.dueDate, // Save as string "YYYY-MM-DD" directly
-                status: 'PENDING',
+                status: 'PENDIENTE',
                 createdAt: new Date()
             };
             const docRef = await addDoc(collection(db, 'bills'), newBill);
@@ -137,7 +137,7 @@ export const api = {
 
             const q = query(
                 collection(db, 'bills'),
-                where('status', '==', 'PENDING'),
+                where('status', '==', 'PENDIENTE'),
                 where('dueDate', '>=', today),
                 orderBy('dueDate', 'asc'),
                 limit(1)

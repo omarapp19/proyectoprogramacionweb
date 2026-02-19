@@ -3,12 +3,15 @@ import React, { useMemo } from 'react';
 const DebtList = ({ bills = [] }) => {
 
     const providers = useMemo(() => {
+        // Filter only pending bills & Sort by due date
+        const pendingBills = bills
+            .filter(b => b.status === "PENDIENTE")
+            .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
         // Aggregate pending bills by provider
-        const grouped = bills.reduce((acc, bill) => {
-            if (bill.status === 'PENDING') {
-                const name = bill.provider || 'Sin Proveedor';
-                acc[name] = (acc[name] || 0) + bill.amount;
-            }
+        const grouped = pendingBills.reduce((acc, bill) => {
+            const name = bill.provider || 'Sin Proveedor';
+            acc[name] = (acc[name] || 0) + bill.amount;
             return acc;
         }, {});
 
