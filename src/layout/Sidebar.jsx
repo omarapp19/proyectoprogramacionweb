@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, ArrowRightLeft, FileText, PieChart, Settings, LogOut, DollarSign, Bot, Calendar } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { useNavigate, NavLink } from 'react-router-dom';
 import { db } from '../firebase'; // Importamos la base de datos de Firebase
 import { doc, onSnapshot } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
+    const { logout } = useAuth();
     const [settings, setSettings] = useState({
         storeName: 'Galpon',
         adminName: 'Omar Pérez'
@@ -59,16 +61,25 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </nav>
 
                 {/* User Profile */}
-                <div className="p-4 mx-4 mb-4 rounded-2xl bg-gradient-to-br from-[#868CFF] to-[#4318FF] text-white shadow-2xl shadow-blue-500/30 relative overflow-hidden">
+                <div className="p-4 mx-4 mb-4 rounded-2xl bg-gradient-to-br from-[#868CFF] to-[#4318FF] text-white shadow-2xl shadow-blue-500/30 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-20 h-20 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
-                    <div className="flex items-center gap-3 relative z-10">
-                        <div className="w-10 h-10 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white font-bold">
-                            {settings.adminName ? settings.adminName.substring(0, 2).toUpperCase() : 'AD'}
+                    <div className="flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white font-bold">
+                                {settings.adminName ? settings.adminName.substring(0, 2).toUpperCase() : 'AD'}
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold truncate max-w-[100px]">{settings.adminName}</p>
+                                <p className="text-xs opacity-80">Admin</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm font-bold">{settings.adminName}</p>
-                            <p className="text-xs opacity-80">Configuración</p>
-                        </div>
+                        <button
+                            onClick={logout}
+                            title="Cerrar Sesión"
+                            className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-all text-white"
+                        >
+                            <LogOut size={16} />
+                        </button>
                     </div>
                 </div>
             </div>

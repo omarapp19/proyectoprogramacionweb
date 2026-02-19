@@ -7,23 +7,42 @@ import Configuration from './pages/Configuration';
 import Invoices from './pages/Invoices';
 import DailySales from './pages/DailySales';
 import ImportAssistant from './pages/ImportAssistant';
+import Login from './pages/Login';
+import { AuthProvider, useAuth } from './context/AuthContext';
+
+const ProtectedRoute = ({ children }) => {
+  const { currentUser } = useAuth();
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<DashboardFlow />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="invoices" element={<Invoices />} />
-          <Route path="daily-sales" element={<DailySales />} />
-          <Route path="calendar" element={<CalendarPage />} />
-          <Route path="import-assistant" element={<ImportAssistant />} />
-          <Route path="settings" element={<Configuration />} />
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+
+          <Route path="/" element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<DashboardFlow />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="invoices" element={<Invoices />} />
+            <Route path="daily-sales" element={<DailySales />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="import-assistant" element={<ImportAssistant />} />
+            <Route path="settings" element={<Configuration />} />
+          </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 
