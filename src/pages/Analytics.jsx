@@ -176,7 +176,12 @@ const Analytics = () => {
 
             {/* Chart Section */}
             <div>
-                <ProjectionChart balance={balance} bills={bills} dailyAverage={dailyAverage} />
+                <ProjectionChart 
+    transactions={transactions} 
+    balance={balance} 
+    bills={bills} 
+    dailyAverage={dailyAverage} 
+/>
             </div>
 
             {/* Bottom Section: Donut & List */}
