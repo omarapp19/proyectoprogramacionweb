@@ -3,13 +3,11 @@ import { Save, Building2, User } from 'lucide-react';
 import { db } from '../firebase'; // Importamos la base de datos de Firebase
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { api } from '../services/api';
-import { loadSimulationData } from '../services/simulationService';
 
 const Configuration = () => {
     const [settings, setSettings] = useState({
         storeName: 'Galpon',
-        adminName: 'Omar Pérez',
-        includeDivisas: false // Default: Don't include Divisas in real balance
+        adminName: 'Omar Pérez'
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -121,22 +119,6 @@ const Configuration = () => {
         }
     };
 
-    const handleSimulationImport = async () => {
-        if (!window.confirm('¿Deseas insertar 1 mes de ventas y facturas para la Ferretería? Esta acción interactuará con tu BD actual.')) return;
-
-        setSaving(true);
-        setMessage({ type: 'info', text: 'Generando ventas e inyectando facturas (Esto puede tardar unos segundos)...' });
-
-        const result = await loadSimulationData();
-
-        if(result.success) {
-            setMessage({ type: 'success', text: result.message });
-        } else {
-            setMessage({ type: 'error', text: result.message });
-        }
-        setSaving(false);
-    };
-
     if (loading) {
         return <div className="p-8 text-center">Cargando configuración...</div>;
     }
@@ -194,36 +176,7 @@ const Configuration = () => {
                         </div>
                     </div>
 
-                    <div className="pt-4 border-t border-gray-50">
-                        <h3 className="text-sm font-bold text-navy mb-4">Preferencias de Cálculo</h3>
-
-                        <label className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer group">
-                            <div>
-                                <div className="font-bold text-navy text-sm mb-1 group-hover:text-primary transition-colors">Incluir Divisas en Balance Real</div>
-                                <p className="text-xs text-secondary opacity-60">Si se activa, las ventas en Divisas sumarán al saldo total disponible.</p>
-                            </div>
-                            <div className="relative inline-flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    name="includeDivisas"
-                                    checked={settings.includeDivisas || false}
-                                    onChange={(e) => setSettings(prev => ({ ...prev, includeDivisas: e.target.checked }))}
-                                    className="sr-only peer"
-                                />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                            </div>
-                        </label>
-                    </div>
-
-                    <div className="pt-4 border-t border-gray-50 flex justify-between">
-                        <button
-                            type="button"
-                            onClick={handleSimulationImport}
-                            disabled={saving}
-                            className="bg-[#1e293b] hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-medium transition-colors text-sm disabled:opacity-50"
-                        >
-                            Cargar Simulación de Ferretería
-                        </button>
+                    <div className="pt-4 border-t border-gray-50 flex justify-end">
                         <button
                             type="submit"
                             disabled={saving}

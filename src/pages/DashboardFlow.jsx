@@ -17,22 +17,9 @@ const DashboardFlow = () => {
     const [nextBill, setNextBill] = useState(null);
     const [stats, setStats] = useState({ income: 0, expenses: 0, salePercentage: 0, expensePercentage: 0 });
     const [totalDivisas, setTotalDivisas] = useState(0);
-    const [includeDivisas, setIncludeDivisas] = useState(false);
 
     const fetchData = async () => {
         try {
-            // Fetch Settings First
-            let settingsInclude = false;
-            try {
-                const settingsRef = doc(db, 'settings', 'global_settings');
-                const settingsSnap = await getDoc(settingsRef);
-                if (settingsSnap.exists()) {
-                    settingsInclude = settingsSnap.data().includeDivisas || false;
-                }
-            } catch (err) {
-                console.warn("Could not fetch settings", err);
-            }
-            setIncludeDivisas(settingsInclude);
 
             const [balanceData, txData, upcomingBillData] = await Promise.all([
                 api.getBalance(), // Note: api.getBalance might need adjustment if it sums on server. Currently it's client-side in my mock/previous view.
@@ -49,10 +36,8 @@ const DashboardFlow = () => {
             setTotalDivisas(totalDivisasAmount);
 
             // Filter for Main Stats & Balance
-            // If settingsInclude is true, we use all data. If false, we exclude Divisas.
-            const validTxs = settingsInclude
-                ? txData
-                : txData.filter(tx => tx.method !== 'Divisas');
+            // Divisas are included by default
+            const validTxs = txData;
 
             // Recalculate Balance manually based on validTxs to be safe vs api.getBalance
             // (Since api.getBalance is likely naive)
@@ -150,7 +135,7 @@ const DashboardFlow = () => {
                     title="Saldo Disponible"
                     value={loading ? '...' : formatCurrency(balance)}
                     trend="up"
-                    trendValue={includeDivisas ? "Inc. Divisas" : "Real (Sin Divisas)"}
+                    trendValue="Inc. Divisas"
                     icon={<Landmark size={20} className="text-success" />}
                 />
                 {/* Divisas Card (Visual Only) */}

@@ -23,17 +23,6 @@ const Analytics = () => {
 
     const fetchData = async () => {
         try {
-            // Fetch Settings
-            let settingsInclude = false;
-            try {
-                const settingsRef = doc(db, 'settings', 'global_settings');
-                const settingsSnap = await getDoc(settingsRef);
-                if (settingsSnap.exists()) {
-                    settingsInclude = settingsSnap.data().includeDivisas || false;
-                }
-            } catch (err) {
-                console.warn("Could not fetch settings", err);
-            }
 
             const [balanceRes, txData, billsRes] = await Promise.all([
                 api.getBalance(),
@@ -42,9 +31,7 @@ const Analytics = () => {
             ]);
 
             // Filter for Balance Calculation
-            const validTxs = settingsInclude
-                ? txData
-                : txData.filter(tx => tx.method !== 'Divisas');
+            const validTxs = txData;
 
             setBills(billsRes);
 
