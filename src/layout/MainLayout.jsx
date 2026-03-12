@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import { Outlet } from 'react-router-dom';
 import { Menu } from 'lucide-react';
+import ImportAssistant from '../pages/ImportAssistant';
 
 const MainLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,6 +26,9 @@ const MainLayout = () => {
                 <main className="flex-1 overflow-y-auto p-4 md:p-8">
                     <Outlet />
                 </main>
+
+                {/* Floating Chatbot Global Widget */}
+                <ImportAssistant />
             </div>
         </div>
     );

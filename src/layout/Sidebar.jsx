@@ -56,7 +56,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                     {/* Divider or Spacer */}
                     <div className="flex-1"></div>
 
-                    <NavItem to="/import-assistant" icon={<Bot size={20} />} label="Asistente IA" onClick={onClose} />
                     <NavItem to="/settings" icon={<Settings size={20} />} label="Configuración" onClick={onClose} />
                 </nav>
 

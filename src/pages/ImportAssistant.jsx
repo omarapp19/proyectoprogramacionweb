@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, Send, Bot, FileSpreadsheet, Loader2, CheckCircle } from 'lucide-react';
+import { Upload, Send, Bot, FileSpreadsheet, Loader2, CheckCircle, X } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { api } from '../services/api';
 // IMPORTAMOS EL NUEVO SERVICIO INTELIGENTE
@@ -14,6 +14,7 @@ const ImportAssistant = () => {
     const [importing, setImporting] = useState(false);
     const [inputValue, setInputValue] = useState("");
     const [isDragging, setIsDragging] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
     
     const messagesEndRef = useRef(null);
 
@@ -218,19 +219,32 @@ const ImportAssistant = () => {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-6rem)] max-w-5xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-primary to-[#868CFF] p-6 text-white flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
-                        <Bot size={28} />
+        <>
+            {/* Floating Chat Button */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`fixed bottom-8 right-8 w-14 h-14 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center justify-center text-white hover:scale-105 transition-all duration-300 z-50 border-2 border-white/50 hover:shadow-primary/40 
+                ${isOpen ? 'bg-[#1e293b] rotate-90' : 'bg-gradient-to-br from-primary to-teal-500 hover:rotate-12'}`}
+                title="Hablar con Asistente Financiero"
+            >
+                {isOpen ? <X size={24} className="-rotate-90 transition-transform" /> : <Bot size={28} className="drop-shadow-sm" />}
+            </button>
+
+            {/* Chatbot Window */}
+            {isOpen && (
+                <div className="fixed bottom-28 right-8 w-[90vw] max-w-[400px] h-[650px] max-h-[80vh] bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col z-50 animate-in slide-in-from-bottom-5 fade-in duration-300 overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-primary to-[#868CFF] p-5 text-white flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner shrink-0">
+                                <Bot size={24} />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-white">Asistente IA Financiero</h1>
+                                <p className="text-sm opacity-90 text-white">Análisis predictivo e importación</p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-xl font-bold">Asistente IA Financiero</h1>
-                        <p className="text-sm opacity-90">Análisis predictivo e importación de datos</p>
-                    </div>
-                </div>
-            </div>
 
             {/* Chat Area */}
             <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50 space-y-6">
@@ -313,6 +327,8 @@ const ImportAssistant = () => {
                 </div>
             </div>
         </div>
+    )}
+</>
     );
 };
 
