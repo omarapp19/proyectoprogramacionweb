@@ -65,7 +65,7 @@ const CalendarPage = () => {
             // Construct date at NOON (12:00) to be safe from midnight timezone shifts
             const billDate = new Date(y, m - 1, d, 12, 0, 0); // Month is 0-indexed
 
-            return bill.status === 'PENDING' && // Filter to only show pending
+            return bill.status === 'PENDIENTE' && // Filter to only show pending
                 billDate.getDate() === dateObj.getDate() &&
                 billDate.getMonth() === dateObj.getMonth() &&
                 billDate.getFullYear() === dateObj.getFullYear();
@@ -81,6 +81,21 @@ const CalendarPage = () => {
     const prevMonth = () => {
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
     };
+
+    // Calculate Projected Sales (Moved to module scope to share with panel)
+    const nowLocal = new Date();
+    const currentDayLocal = nowLocal.getDate();
+    const lastDayOfMonthLocal = new Date(nowLocal.getFullYear(), nowLocal.getMonth() + 1, 0).getDate();
+    const remainingDaysLocal = lastDayOfMonthLocal - currentDayLocal;
+
+    const currentMonthTransactions = transactions.filter(t => {
+        const d = new Date(t.date);
+        return t.type === 'INGRESO' && d.getMonth() === nowLocal.getMonth() && d.getFullYear() === nowLocal.getFullYear();
+    });
+
+    const monthlyTotalLocal = currentMonthTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const dailyAverageGlobal = currentDayLocal > 0 ? monthlyTotalLocal / currentDayLocal : 0;
+    const projectedRemainingGlobal = dailyAverageGlobal * remainingDaysLocal;
 
     return (
         <div className="flex h-full gap-8 overflow-hidden relative">
@@ -101,46 +116,27 @@ const CalendarPage = () => {
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    {(() => {
-                        // Calculate Projected Sales
-                        const now = new Date();
-                        const currentDay = now.getDate();
-                        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-                        const remainingDays = lastDayOfMonth - currentDay;
-
-                        const currentMonthTransactions = transactions.filter(t => {
-                            const d = new Date(t.date);
-                            return t.type === 'INCOME' && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-                        });
-
-                        const monthlyTotal = currentMonthTransactions.reduce((sum, t) => sum + t.amount, 0);
-                        const dailyAverage = currentDay > 0 ? monthlyTotal / currentDay : 0;
-                        const projectedRemaining = dailyAverage * remainingDays;
-
-                        return (
-                            <div className="card p-5 flex justify-between items-center bg-white border border-gray-50/50 shadow-sm">
-                                <div>
-                                    <p className="text-xs text-secondary font-bold opacity-60 uppercase mb-2">Venta Proyectada (Restante)</p>
-                                    <div className="flex items-end gap-3">
-                                        <h3 className="text-3xl font-bold text-navy">${projectedRemaining.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
-                                        <span className="bg-blue-50 text-primary text-[10px] px-2 py-1 rounded-full font-bold mb-1">
-                                            {remainingDays} días rest.
-                                        </span>
-                                    </div>
-                                    <p className="text-[10px] text-secondary opacity-50 mt-1">Base: ${dailyAverage.toLocaleString(undefined, { maximumFractionDigits: 0 })}/día prom.</p>
-                                </div>
-                                <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-secondary opacity-40">
-                                    <TrendingUp size={24} />
-                                </div>
+                    <div className="card p-5 flex justify-between items-center bg-white border border-gray-50/50 shadow-sm">
+                        <div>
+                            <p className="text-xs text-secondary font-bold opacity-60 uppercase mb-2">Venta Proyectada (Restante)</p>
+                            <div className="flex items-end gap-3">
+                                <h3 className="text-3xl font-bold text-navy">${projectedRemainingGlobal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+                                <span className="bg-blue-50 text-primary text-[10px] px-2 py-1 rounded-full font-bold mb-1">
+                                    {remainingDaysLocal} días rest.
+                                </span>
                             </div>
-                        );
-                    })()}
+                            <p className="text-[10px] text-secondary opacity-50 mt-1">Base: ${dailyAverageGlobal.toLocaleString(undefined, { maximumFractionDigits: 0 })}/día prom.</p>
+                        </div>
+                        <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-secondary opacity-40">
+                            <TrendingUp size={24} />
+                        </div>
+                    </div>
                     {/* Placeholder other cards */}
                     <div className="card p-5 flex justify-between items-center bg-white border border-gray-50/50 shadow-sm">
                         <div>
                             <p className="text-xs text-secondary font-bold opacity-60 uppercase mb-2">Total Pendiente (Todo)</p>
                             <div className="flex items-end gap-3">
-                                <h3 className="text-3xl font-bold text-navy">${bills.filter(b => b.status === 'PENDING').reduce((sum, b) => sum + b.amount, 0).toLocaleString()}</h3>
+                                <h3 className="text-3xl font-bold text-navy">${bills.filter(b => b.status === 'PENDIENTE').reduce((sum, b) => sum + b.amount, 0).toLocaleString()}</h3>
                                 <span className="bg-green-50 text-success text-[10px] px-2 py-1 rounded-full font-bold mb-1">Global</span>
                             </div>
                         </div>
@@ -149,14 +145,14 @@ const CalendarPage = () => {
                         </div>
                     </div>
                     {/* Alert card placeholder */}
-                    <div className={`card p-5 flex items-center gap-4 border shadow-none ${bills.some(b => b.status === 'PENDING' && new Date(b.dueDate) < new Date()) ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
-                        <div className={`w-10 h-10 rounded-full shadow-md flex items-center justify-center flex-shrink-0 ${bills.some(b => b.status === 'PENDING' && new Date(b.dueDate) < new Date()) ? 'bg-white text-danger' : 'bg-white text-success'}`}>
-                            {bills.some(b => b.status === 'PENDING' && new Date(b.dueDate) < new Date()) ? <AlertTriangle size={20} fill="currentColor" /> : <TrendingDown size={20} />}
+                    <div className={`card p-5 flex items-center gap-4 border shadow-none ${bills.some(b => b.status === 'PENDIENTE' && new Date(b.dueDate) < new Date()) ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+                        <div className={`w-10 h-10 rounded-full shadow-md flex items-center justify-center flex-shrink-0 ${bills.some(b => b.status === 'PENDIENTE' && new Date(b.dueDate) < new Date()) ? 'bg-white text-danger' : 'bg-white text-success'}`}>
+                            {bills.some(b => b.status === 'PENDIENTE' && new Date(b.dueDate) < new Date()) ? <AlertTriangle size={20} fill="currentColor" /> : <TrendingDown size={20} />}
                         </div>
                         <div>
-                            <p className={`text-sm font-bold ${bills.some(b => b.status === 'PENDING' && new Date(b.dueDate) < new Date()) ? 'text-danger' : 'text-success'}`}>Estado de Liquidez</p>
-                            <p className={`text-[11px] opacity-80 leading-snug ${bills.some(b => b.status === 'PENDING' && new Date(b.dueDate) < new Date()) ? 'text-danger' : 'text-success'}`}>
-                                {bills.some(b => b.status === 'PENDING' && new Date(b.dueDate) < new Date()) ? 'Facturas vencidas detectadas' : 'Al día con los pagos'}
+                            <p className={`text-sm font-bold ${bills.some(b => b.status === 'PENDIENTE' && new Date(b.dueDate) < new Date()) ? 'text-danger' : 'text-success'}`}>Estado de Liquidez</p>
+                            <p className={`text-[11px] opacity-80 leading-snug ${bills.some(b => b.status === 'PENDIENTE' && new Date(b.dueDate) < new Date()) ? 'text-danger' : 'text-success'}`}>
+                                {bills.some(b => b.status === 'PENDIENTE' && new Date(b.dueDate) < new Date()) ? 'Facturas vencidas detectadas' : 'Al día con los pagos'}
                             </p>
                         </div>
                     </div>
@@ -216,7 +212,7 @@ const CalendarPage = () => {
                                                 <span className="block opacity-70 mb-0.5">{dayBills.length} Facturas</span>
                                                 <span className="text-navy">-${totalAmount.toLocaleString()}</span>
                                             </div>
-                                            {dayBills.some(b => b.status === 'PENDING') && (
+                                            {dayBills.some(b => b.status === 'PENDIENTE') && (
                                                 <div className="absolute top-2 right-2 text-warning">
                                                     <AlertCircle size={14} fill="currentColor" className="text-white" />
                                                 </div>
@@ -237,6 +233,7 @@ const CalendarPage = () => {
                         date={selectedDate}
                         bills={getBillsForDate(selectedDate)}
                         onBillUpdate={fetchData}
+                        dailyAverage={dailyAverageGlobal}
                     />
                 </div>
             )}

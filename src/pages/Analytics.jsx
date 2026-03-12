@@ -8,6 +8,11 @@ import ProjectionChart from '../components/ProjectionChart';
 import PaymentMixChart from '../components/PaymentMixChart';
 import DebtList from '../components/DebtList';
 
+// Nuevas gráficas importadas
+import IncomeExpenseChart from '../components/IncomeExpenseChart';
+import ExpenseCategoryChart from '../components/ExpenseCategoryChart';
+import CashFlowChart from '../components/CashFlowChart';
+
 const Analytics = () => {
     const [balance, setBalance] = useState(0);
     const [transactions, setTransactions] = useState([]);
@@ -90,7 +95,7 @@ const Analytics = () => {
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(now.getDate() + 30);
 
-    const pendingBills = bills.filter(b => b.status === 'PENDING' && new Date(b.dueDate) <= thirtyDaysFromNow);
+    const pendingBills = bills.filter(b => b.status === 'PENDIENTE' && new Date(b.dueDate) <= thirtyDaysFromNow);
     const scheduledPaymentsTotal = pendingBills.reduce((acc, curr) => acc + curr.amount, 0);
 
     // 2. Projected Incomes (Used from State)
@@ -174,14 +179,28 @@ const Analytics = () => {
                 />
             </div>
 
-            {/* Chart Section */}
+            {/* Chart Section - Proyección Principal */}
             <div>
                 <ProjectionChart 
-    transactions={transactions} 
-    balance={balance} 
-    bills={bills} 
-    dailyAverage={dailyAverage} 
-/>
+                    transactions={transactions} 
+                    balance={balance} 
+                    bills={bills} 
+                />
+            </div>
+
+            {/* Nuevas Gráficas de Mitad (Ingresos/Gastos y Categorías) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <IncomeExpenseChart transactions={transactions} />
+                </div>
+                <div>
+                    <ExpenseCategoryChart transactions={transactions} />
+                </div>
+            </div>
+
+            {/* Gráfico de Flujo Neto Largo */}
+            <div>
+                <CashFlowChart transactions={transactions} />
             </div>
 
             {/* Bottom Section: Donut & List */}

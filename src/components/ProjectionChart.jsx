@@ -24,7 +24,7 @@ function calcularRegresionLineal(datos) {
     return { m, b, predecir: (x) => m * x + b };
 }
 
-const ProjectionChart = ({ transactions = [], balance = 0, bills = [], dailyAverage = 0 }) => {
+const ProjectionChart = ({ transactions = [], balance = 0, bills = [] }) => {
     
     const data = useMemo(() => {
         // 1. Preparar datos históricos para la regresión (últimos 30 días)
@@ -58,7 +58,6 @@ const ProjectionChart = ({ transactions = [], balance = 0, bills = [], dailyAver
 
         // 2. Proyectar los próximos 30 días
         const result = [];
-        let currentBalanceBasico = balance;
         let currentBalanceRegresion = balance;
 
         for (let i = 1; i <= 30; i++) {
@@ -74,25 +73,23 @@ const ProjectionChart = ({ transactions = [], balance = 0, bills = [], dailyAver
             const billsDue = bills.filter(b => b.status === 'PENDIENTE' && b.dueDate && b.dueDate.startsWith(dateStr));
             const billsTotal = billsDue.reduce((sum, b) => sum + parseFloat(b.amount || 0), 0);
 
-            // Calcular ambos escenarios
-            currentBalanceBasico += dailyAverage - billsTotal;
+            // Calcular escenario de regresión
             currentBalanceRegresion += ingresoPredicho - billsTotal;
 
             result.push({
                 date: date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }),
-                saldoPromedio: Math.round(currentBalanceBasico),
                 saldoRegresion: Math.round(currentBalanceRegresion)
             });
         }
         return result;
-    }, [transactions, balance, bills, dailyAverage]);
+    }, [transactions, balance, bills]);
 
     return (
         <div className="card h-full w-full p-6 bg-white shadow-card rounded-3xl">
             <div className="mb-6">
-                <h3 className="text-lg font-bold text-navy">Proyección Predictiva (Regresión Lineal vs Promedio)</h3>
+                <h3 className="text-lg font-bold text-navy">Proyección Predictiva (Regresión Lineal)</h3>
                 <p className="text-sm text-secondary opacity-60">
-                    Compara el crecimiento de tu saldo usando tu promedio estático frente a un modelo de tendencia basado en tus últimos 30 días.
+                    Visualiza el crecimiento de tu saldo usando un modelo de tendencia basado en tus últimos 30 días.
                 </p>
             </div>
 
@@ -103,10 +100,6 @@ const ProjectionChart = ({ transactions = [], balance = 0, bills = [], dailyAver
                             <linearGradient id="colorRegresion" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
                                 <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                            </linearGradient>
-                            <linearGradient id="colorPromedio" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#4318FF" stopOpacity={0.1} />
-                                <stop offset="95%" stopColor="#4318FF" stopOpacity={0} />
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -127,7 +120,6 @@ const ProjectionChart = ({ transactions = [], balance = 0, bills = [], dailyAver
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                             formatter={(value, name) => {
                                 if (name === 'saldoRegresion') return [`$${value.toLocaleString()}`, 'Predicción Tendencia (Regresión)'];
-                                if (name === 'saldoPromedio') return [`$${value.toLocaleString()}`, 'Predicción Plana (Promedio)'];
                                 return [value, name];
                             }}
                         />
@@ -139,23 +131,6 @@ const ProjectionChart = ({ transactions = [], balance = 0, bills = [], dailyAver
                             fillOpacity={1}
                             fill="url(#colorRegresion)"
                             name="saldoRegresion"
-                        />
-                        <Area
-                            type="monotone"
-                            dataKey="saldoPromedio"
-                            stroke="#4318FF"
-                            strokeWidth={2}
-                            strokeDasharray="5 5"
-                            fillOpacity={1}
-                            fill="url(#colorPromedio)"
-                            name="saldoPromedio"
-                        />
-                        <Legend 
-                            verticalAlign="bottom" 
-                            height={36}
-                            formatter={(value) => {
-                                return <span className="text-secondary text-sm ml-1 font-medium">{value === 'saldoRegresion' ? 'Tendencia (IA)' : 'Promedio Clásico'}</span>
-                            }}
                         />
                     </AreaChart>
                 </ResponsiveContainer>

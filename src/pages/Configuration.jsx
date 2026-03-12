@@ -3,6 +3,7 @@ import { Save, Building2, User } from 'lucide-react';
 import { db } from '../firebase'; // Importamos la base de datos de Firebase
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { api } from '../services/api';
+import { loadSimulationData } from '../services/simulationService';
 
 const Configuration = () => {
     const [settings, setSettings] = useState({
@@ -120,6 +121,22 @@ const Configuration = () => {
         }
     };
 
+    const handleSimulationImport = async () => {
+        if (!window.confirm('¿Deseas insertar 1 mes de ventas y facturas para la Ferretería? Esta acción interactuará con tu BD actual.')) return;
+
+        setSaving(true);
+        setMessage({ type: 'info', text: 'Generando ventas e inyectando facturas (Esto puede tardar unos segundos)...' });
+
+        const result = await loadSimulationData();
+
+        if(result.success) {
+            setMessage({ type: 'success', text: result.message });
+        } else {
+            setMessage({ type: 'error', text: result.message });
+        }
+        setSaving(false);
+    };
+
     if (loading) {
         return <div className="p-8 text-center">Cargando configuración...</div>;
     }
@@ -201,11 +218,11 @@ const Configuration = () => {
                     <div className="pt-4 border-t border-gray-50 flex justify-between">
                         <button
                             type="button"
-                            onClick={handleBulkImport}
+                            onClick={handleSimulationImport}
                             disabled={saving}
-                            className="text-primary hover:bg-primary/5 px-4 py-2 rounded-xl font-medium transition-colors text-sm disabled:opacity-50"
+                            className="bg-[#1e293b] hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-medium transition-colors text-sm disabled:opacity-50"
                         >
-                            Importar Datos Históricos
+                            Cargar Simulación de Ferretería
                         </button>
                         <button
                             type="submit"

@@ -2,7 +2,7 @@ import React from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { api } from '../services/api';
 
-const DayDetailsPanel = ({ onClose, date, bills = [], onBillUpdate }) => {
+const DayDetailsPanel = ({ onClose, date, bills = [], onBillUpdate, dailyAverage = 0 }) => {
     const [selectedIds, setSelectedIds] = React.useState([]);
 
     // Calculate totals
@@ -50,14 +50,14 @@ const DayDetailsPanel = ({ onClose, date, bills = [], onBillUpdate }) => {
             try {
                 for (const id of selectedIds) {
                     // 1. Update Bill Status
-                    await api.updateBill(id, { status: 'PAID' });
+                    await api.updateBill(id, { status: 'PAGADO' });
 
                     // 2. Create Expense Transaction to reflect in Balance!
                     const bill = bills.find(b => b.id === id);
                     if (bill) {
                         await api.createTransaction({
                             amount: bill.amount,
-                            type: 'EXPENSE',
+                            type: 'GASTO',
                             category: 'Pago de Factura',
                             note: `Pago a: ${bill.provider || 'Proveedor'} (${bill.title})`,
                             date: new Date().toISOString().split('T')[0],
@@ -117,7 +117,7 @@ const DayDetailsPanel = ({ onClose, date, bills = [], onBillUpdate }) => {
                 <div className="flex gap-4 mb-6">
                     <div className="flex-1">
                         <p className="text-xs font-bold text-secondary opacity-60 uppercase mb-1">Proyectado</p>
-                        <p className="text-lg font-bold text-success">+$0.00</p>
+                        <p className="text-lg font-bold text-success">+{formatCurrency(dailyAverage)}</p>
                     </div>
                     <div className="flex-1 border-l pl-4 border-gray-100">
                         <p className="text-xs font-bold text-secondary opacity-60 uppercase mb-1">Por Pagar</p>
@@ -164,8 +164,8 @@ const DayDetailsPanel = ({ onClose, date, bills = [], onBillUpdate }) => {
                                         </div>
                                         <p className="text-sm font-bold text-secondary">{formatCurrency(bill.amount)}</p>
                                     </div>
-                                    <div className={`ml-8 px-2 py-1 rounded text-[10px] inline-block font-bold ${bill.status === 'PENDING' ? 'bg-orange-50 text-warning' : 'bg-green-50 text-success'}`}>
-                                        {bill.status === 'PENDING' ? 'Pendiente' : 'Pagado'}
+                                    <div className={`ml-8 px-2 py-1 rounded text-[10px] inline-block font-bold ${bill.status === 'PENDIENTE' ? 'bg-orange-50 text-warning' : 'bg-green-50 text-success'}`}>
+                                        {bill.status === 'PENDIENTE' ? 'Pendiente' : 'Pagado'}
                                     </div>
                                 </div>
                             ))

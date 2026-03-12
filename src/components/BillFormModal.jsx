@@ -8,6 +8,7 @@ const BillFormModal = ({ onClose, onBillAdded }) => {
         title: '',
         provider: '',
         amount: '',
+        category: 'Inventario', // Default Category
         // Use local date for default value to prevent UTC offset issues
         dueDate: new Date().toLocaleDateString('en-CA')
     });
@@ -70,18 +71,24 @@ const BillFormModal = ({ onClose, onBillAdded }) => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs font-bold text-secondary uppercase tracking-wider mb-2 block">Monto</label>
-                            <input
-                                type="number"
-                                name="amount"
-                                step="0.01"
-                                value={formData.amount}
+                            <label className="text-xs font-bold text-secondary uppercase tracking-wider mb-2 block">Categoría</label>
+                            <select
+                                name="category"
+                                value={formData.category}
                                 onChange={handleChange}
                                 required
-                                placeholder="0.00"
-                                className="w-full p-4 bg-background rounded-xl border-2 border-transparent focus:border-primary outline-none font-bold text-navy"
-                            />
+                                className="w-full p-4 bg-background rounded-xl border-2 border-transparent focus:border-primary outline-none font-bold text-navy appearance-none cursor-pointer"
+                            >
+                                <option value="Inventario">Inventario</option>
+                                <option value="Materia Prima">Materia Prima</option>
+                                <option value="Servicios Fijos">Servicios Fijos</option>
+                                <option value="Nómina">Nómina</option>
+                                <option value="Impuestos">Impuestos</option>
+                                <option value="Créditos / Deuda">Créditos / Deuda</option>
+                                <option value="Otros">Otros</option>
+                            </select>
                         </div>
+
                         <div>
                             <label className="text-xs font-bold text-secondary uppercase tracking-wider mb-2 block">Vencimiento</label>
                             <input
@@ -93,6 +100,20 @@ const BillFormModal = ({ onClose, onBillAdded }) => {
                                 className="w-full p-4 bg-background rounded-xl border-2 border-transparent focus:border-primary outline-none font-bold text-secondary"
                             />
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-secondary uppercase tracking-wider mb-2 block">Monto</label>
+                        <input
+                            type="number"
+                            name="amount"
+                            step="0.01"
+                            value={formData.amount}
+                            onChange={handleChange}
+                            required
+                            placeholder="0.00"
+                            className="w-full p-4 bg-background rounded-xl border-2 border-transparent focus:border-primary outline-none font-bold text-navy text-xl"
+                        />
                     </div>
 
                     <button
