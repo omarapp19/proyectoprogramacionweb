@@ -58,7 +58,7 @@ const ImportAssistant = () => {
             
             setMessages(prev => [...prev, { id: Date.now(), type: 'bot', text: botResponse }]);
         } catch (error) {
-            setMessages(prev => [...prev, { id: Date.now(), type: 'bot', text: "Lo siento, tuve un problema analizando tus datos. Por favor, intenta de nuevo." }]);
+            setMessages(prev => [...prev, { id: Date.now(), type: 'bot', text: `Error de UI Crítico: ${error.message} \n\n Stack: ${error.stack}` }]);
         } finally {
             setIsTyping(false);
         }
