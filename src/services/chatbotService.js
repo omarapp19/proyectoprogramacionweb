@@ -66,7 +66,7 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
     if (!apiKey) {
-        throw new Error("No se encontró la API Key de Gemini. Verifica tu archivo .env");
+        return "⚠️ Error: No pude encontrar la API Key de Google Gemini. Si acabas de modificar tu archivo .env, es OBLIGATORIO que detengas el servidor local (Ctrl + C en la terminal) y vuelvas a ejecutar 'npm run dev' para que el sistema reconozca tu nueva contraseña oculta.";
     }
 
     // 3. Llamada a la API REST de Gemini
