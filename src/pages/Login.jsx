@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Lock, Mail, Loader2 } from 'lucide-react';
+import { User, Lock, Mail, Loader2, Eye, EyeOff, Calendar } from 'lucide-react';
 
 const Login = () => {
     const [isRegistering, setIsRegistering] = useState(false);
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [age, setAge] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -16,11 +21,23 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (isRegistering) {
+            if (password !== confirmPassword) {
+                setError('Las contraseñas no coinciden.');
+                return;
+            }
+            if (!age || parseInt(age) < 1 || parseInt(age) > 120) {
+                setError('Ingresa una edad válida.');
+                return;
+            }
+        }
+
         setLoading(true);
 
         try {
             if (isRegistering) {
-                await signup(email, password);
+                await signup(email, password, name, parseInt(age));
             } else {
                 await login(email, password);
             }
@@ -63,7 +80,21 @@ const Login = () => {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {isRegistering && (
+                            <div className="relative">
+                                <User className="absolute top-1/2 -translate-y-1/2 left-4 text-gray-400" size={20} />
+                                <input
+                                    type="text"
+                                    placeholder="Nombre completo"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-primary focus:bg-white transition-all text-navy font-medium"
+                                    required
+                                />
+                            </div>
+                        )}
+
                         <div className="relative">
                             <Mail className="absolute top-1/2 -translate-y-1/2 left-4 text-gray-400" size={20} />
                             <input
@@ -75,17 +106,62 @@ const Login = () => {
                                 required
                             />
                         </div>
+
                         <div className="relative">
                             <Lock className="absolute top-1/2 -translate-y-1/2 left-4 text-gray-400" size={20} />
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 placeholder="Contraseña"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-primary focus:bg-white transition-all text-navy font-medium"
+                                className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-primary focus:bg-white transition-all text-navy font-medium"
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
+
+                        {isRegistering && (
+                            <>
+                                <div className="relative">
+                                    <Lock className="absolute top-1/2 -translate-y-1/2 left-4 text-gray-400" size={20} />
+                                    <input
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        placeholder="Confirmar contraseña"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-primary focus:bg-white transition-all text-navy font-medium"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute top-1/2 -translate-y-1/2 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
+
+                                <div className="relative">
+                                    <Calendar className="absolute top-1/2 -translate-y-1/2 left-4 text-gray-400" size={20} />
+                                    <input
+                                        type="number"
+                                        placeholder="Edad"
+                                        value={age}
+                                        onChange={(e) => setAge(e.target.value)}
+                                        min="1"
+                                        max="120"
+                                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-primary focus:bg-white transition-all text-navy font-medium"
+                                        required
+                                    />
+                                </div>
+                            </>
+                        )}
 
                         <button
                             type="submit"
@@ -101,7 +177,10 @@ const Login = () => {
                         <p>
                             {isRegistering ? "¿Ya tienes una cuenta?" : "¿No tienes una cuenta?"}{' '}
                             <button
-                                onClick={() => setIsRegistering(!isRegistering)}
+                                onClick={() => {
+                                    setIsRegistering(!isRegistering);
+                                    setError('');
+                                }}
                                 className="text-primary font-bold hover:underline"
                             >
                                 {isRegistering ? 'Inicia Sesión' : 'Regístrate'}

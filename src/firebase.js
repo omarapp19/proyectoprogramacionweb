@@ -2,7 +2,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
 
 // TODO: Reemplaza estos valores con los de tu consola de Firebase
 // Project Settings > General > Your apps > Firebase SDK snippet > Config

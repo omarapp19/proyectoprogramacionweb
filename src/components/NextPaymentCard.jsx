@@ -1,7 +1,9 @@
-import React from 'react';
-import { AlertTriangle, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertTriangle, ArrowRight, X } from 'lucide-react';
+import CalendarPage from '../pages/Calendar';
 
 const NextPaymentCard = ({ bill }) => {
+    const [showCalendar, setShowCalendar] = useState(false);
     const daysUntilDue = bill ? Math.ceil((new Date(bill.dueDate) - new Date()) / (1000 * 60 * 60 * 24)) : 0;
     const dueDateDisplay = bill ? new Date(bill.dueDate).toLocaleDateString() : '-';
 
@@ -39,9 +41,23 @@ const NextPaymentCard = ({ bill }) => {
                 {bill && <p className="text-sm text-secondary font-medium">Vence: <span className={`font-bold ${isUrgent ? 'text-danger' : 'text-navy'}`}>{urgencyText} ({dueDateDisplay})</span></p>}
             </div>
 
-            <div className="mt-4 pl-2 flex items-center gap-2 text-sm font-bold text-primary cursor-pointer hover:gap-3 transition-all group">
+            <div
+                className="mt-4 pl-2 flex items-center gap-2 text-sm font-bold text-primary cursor-pointer hover:gap-3 transition-all group"
+                onClick={() => !bill && setShowCalendar(true)}
+            >
                 {bill ? 'Ver detalles' : 'Ver calendario'} <ArrowRight size={16} className="group-hover:text-primary transition-colors" />
             </div>
+
+            {showCalendar && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setShowCalendar(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[85vh] p-6 relative overflow-auto" onClick={(e) => e.stopPropagation()}>
+                        <button onClick={() => setShowCalendar(false)} className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors bg-white rounded-full p-1 shadow">
+                            <X size={20} />
+                        </button>
+                        <CalendarPage />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
