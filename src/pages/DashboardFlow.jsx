@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Plus, Landmark, DollarSign } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -13,6 +13,7 @@ import RecentActivity from '../components/RecentActivity';
 
 const DashboardFlow = () => {
     const { currentUser } = useAuth();
+    const navigate = useNavigate();
     const [balance, setBalance] = useState(0);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -20,10 +21,6 @@ const DashboardFlow = () => {
     const [nextBill, setNextBill] = useState(null);
     const [stats, setStats] = useState({ income: 0, expenses: 0, salePercentage: 0, expensePercentage: 0 });
     const [totalDivisas, setTotalDivisas] = useState(0);
-
-    if (currentUser?.email === 'omarapp1921@gmail.com') {
-        return <Navigate to="/admin" replace />;
-    }
 
     const fetchData = async () => {
         try {
@@ -83,8 +80,12 @@ const DashboardFlow = () => {
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (currentUser?.email === 'omarapp1921@gmail.com') {
+            navigate('/admin', { replace: true });
+        } else {
+            fetchData();
+        }
+    }, [currentUser, navigate]);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);

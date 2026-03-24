@@ -8,33 +8,25 @@ import { useAuth } from '../context/AuthContext';
 const Sidebar = ({ isOpen, onClose }) => {
     const { logout, currentUser } = useAuth();
     const [settings, setSettings] = useState({
-        storeName: 'Galpon',
-        adminName: ''
+        storeName: 'Mi Negocio'
     });
     const [userRole, setUserRole] = useState('');
 
-    const displayName = currentUser?.displayName || settings.adminName || 'Admin';
+    const displayName = currentUser?.displayName || 'Admin';
 
     useEffect(() => {
-        // Suscribirse a cambios en tiempo real
-        const unsub = onSnapshot(doc(db, 'settings', 'global_settings'), (docSnap) => {
+        if (!currentUser?.email) return;
+        const unsub = onSnapshot(doc(db, 'users', currentUser.email), (docSnap) => {
             if (docSnap.exists()) {
-                setSettings(docSnap.data());
-            }
-        });
-
-        return () => unsub();
-    }, []);
-
-    useEffect(() => {
-        if (!currentUser?.uid) return;
-        const unsub = onSnapshot(doc(db, 'users', currentUser.uid), (docSnap) => {
-            if (docSnap.exists()) {
-                setUserRole(docSnap.data().role || 'Usuario');
+                const data = docSnap.data();
+                setUserRole(data.role || 'Usuario');
+                if (data.storeName) {
+                    setSettings({ storeName: data.storeName });
+                }
             }
         });
         return () => unsub();
-    }, [currentUser?.uid]);
+    }, [currentUser?.email]);
 
     return (
         <>
@@ -59,20 +51,22 @@ const Sidebar = ({ isOpen, onClose }) => {
 
                 {/* Navigation */}
                 <nav className="flex-1 px-4 py-4 flex flex-col gap-2 overflow-y-auto">
-                    <NavItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" onClick={onClose} />
-                    <NavItem to="/analytics" icon={<PieChart size={20} />} label="Estadísticas" onClick={onClose} />
-                    <NavItem to="/daily-sales" icon={<DollarSign size={20} />} label="Ventas Diarias" onClick={onClose} />
-                    <NavItem to="/invoices" icon={<FileText size={20} />} label="Facturas" onClick={onClose} />
-                    <NavItem to="/calendar" icon={<Calendar size={20} />} label="Calendario" onClick={onClose} />
-                    
-                    {currentUser?.email === 'omarapp1921@gmail.com' && (
+                    {currentUser?.email !== 'omarapp1921@gmail.com' ? (
+                        <>
+                            <NavItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" onClick={onClose} />
+                            <NavItem to="/analytics" icon={<PieChart size={20} />} label="Estadísticas" onClick={onClose} />
+                            <NavItem to="/daily-sales" icon={<DollarSign size={20} />} label="Ventas Diarias" onClick={onClose} />
+                            <NavItem to="/invoices" icon={<FileText size={20} />} label="Facturas" onClick={onClose} />
+                            <NavItem to="/calendar" icon={<Calendar size={20} />} label="Calendario" onClick={onClose} />
+
+                            {/* Divider or Spacer */}
+                            <div className="flex-1"></div>
+
+                            <NavItem to="/settings" icon={<Settings size={20} />} label="Configuración" onClick={onClose} />
+                        </>
+                    ) : (
                         <NavItem to="/admin" icon={<Users size={20} />} label="Panel de Control" onClick={onClose} />
                     )}
-
-                    {/* Divider or Spacer */}
-                    <div className="flex-1"></div>
-
-                    <NavItem to="/settings" icon={<Settings size={20} />} label="Configuración" onClick={onClose} />
                 </nav>
 
                 {/* User Profile */}

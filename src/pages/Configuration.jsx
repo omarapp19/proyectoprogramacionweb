@@ -8,8 +8,7 @@ const Configuration = () => {
     const { currentUser, getCurrentUserData, updateUserProfile, changeUserPassword } = useAuth();
 
     const [generalSettings, setGeneralSettings] = useState({
-        storeName: 'Galpon',
-        adminName: 'Omar Pérez'
+        storeName: 'Mi Negocio'
     });
 
     const [profile, setProfile] = useState({
@@ -38,7 +37,6 @@ const Configuration = () => {
     const [savingPassword, setSavingPassword] = useState(false);
     const [passwordMessage, setPasswordMessage] = useState(null);
 
-    const settingsRef = doc(db, 'settings', 'global_settings');
     const userAge = useMemo(() => {
         if (profile.age === '') {
             return '';
@@ -48,7 +46,7 @@ const Configuration = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            await Promise.all([fetchSettings(), fetchProfile()]);
+            await fetchProfile();
             setLoading(false);
         };
 
@@ -57,30 +55,20 @@ const Configuration = () => {
         }
     }, [currentUser]);
 
-    const fetchSettings = async () => {
-        try {
-            const docSnap = await getDoc(settingsRef);
-            if (docSnap.exists()) {
-                setGeneralSettings(docSnap.data());
-            }
-        } catch (error) {
-            console.error('Error fetching settings:', error);
-        }
-    };
-
     const fetchProfile = async () => {
         try {
             const userData = await getCurrentUserData();
-            console.log('User data from Firebase:', userData);
-
+            
             if (userData) {
                 setProfile({
                     name: userData.name || currentUser?.displayName || '',
                     age: userData.age ? String(userData.age) : ''
                 });
+                setGeneralSettings({
+                    storeName: userData.storeName || 'Mi Negocio'
+                });
                 setUserRole(userData.role || 'Usuario');
             } else {
-                // Si no existe userData, usar displayName de Firebase Auth
                 setProfile({
                     name: currentUser?.displayName || '',
                     age: ''
@@ -114,15 +102,14 @@ const Configuration = () => {
         setMessage(null);
 
         try {
-            await setDoc(settingsRef, {
-                ...generalSettings,
-                updatedAt: new Date()
+            await updateUserProfile({
+                storeName: generalSettings.storeName
             });
 
-            setMessage({ type: 'success', text: 'Configuración guardada exitosamente' });
+            setMessage({ type: 'success', text: 'Configuración de negocio guardada' });
         } catch (error) {
             console.error('Error saving settings:', error);
-            setMessage({ type: 'error', text: 'Error al conectar con Firebase' });
+            setMessage({ type: 'error', text: 'Error al actualizar el nombre del negocio' });
         } finally {
             setSavingGeneral(false);
         }
@@ -331,12 +318,6 @@ const Configuration = () => {
                     <p className="text-sm text-secondary opacity-70">Datos del negocio visibles en la navegación principal.</p>
                 </div>
 
-                {userRole !== 'Admin' && (
-                    <div className="mb-6 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800">
-                        <p className="text-sm font-medium">⚠️ Solo los administradores pueden cambiar la configuración general.</p>
-                    </div>
-                )}
-
                 <form onSubmit={handleGeneralSubmit} className="space-y-6">
                     {message && (
                         <div className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -349,7 +330,7 @@ const Configuration = () => {
                             <label className="block text-sm font-medium text-navy mb-2">
                                 <div className="flex items-center gap-2">
                                     <Building2 size={16} className="text-primary" />
-                                    Nombre del local
+                                    Nombre del Negocio
                                 </div>
                             </label>
                             <input
@@ -357,28 +338,8 @@ const Configuration = () => {
                                 name="storeName"
                                 value={generalSettings.storeName}
                                 onChange={handleGeneralChange}
-                                disabled={userRole !== 'Admin'}
-                                className={`w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors ${userRole !== 'Admin' ? 'bg-gray-50 cursor-not-allowed opacity-60' : ''}`}
-                                placeholder="Ej: Mi Negocio"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-navy mb-2">
-                                <div className="flex items-center gap-2">
-                                    <User size={16} className="text-primary" />
-                                    Usuario administrador
-                                </div>
-                            </label>
-                            <input
-                                type="text"
-                                name="adminName"
-                                value={generalSettings.adminName}
-                                onChange={handleGeneralChange}
-                                disabled={userRole !== 'Admin'}
-                                className={`w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors ${userRole !== 'Admin' ? 'bg-gray-50 cursor-not-allowed opacity-60' : ''}`}
-                                placeholder="Ej: Carlos Ruiz"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                                placeholder="Ej: Mi Negocio Familiar"
                                 required
                             />
                         </div>
@@ -387,11 +348,11 @@ const Configuration = () => {
                     <div className="pt-4 border-t border-gray-50 flex justify-end">
                         <button
                             type="submit"
-                            disabled={savingGeneral || userRole !== 'Admin'}
-                            className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={savingGeneral}
+                            className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
                         >
                             <Save size={18} />
-                            {savingGeneral ? 'Guardando...' : 'Guardar configuración'}
+                            {savingGeneral ? 'Guardando...' : 'Guardar negocio'}
                         </button>
                     </div>
                 </form>

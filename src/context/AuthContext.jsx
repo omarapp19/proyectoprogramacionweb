@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
         try {
-            await setDoc(doc(db, 'users', userCredential.user.uid), {
+            await setDoc(doc(db, 'users', userCredential.user.email), {
                 name,
                 email,
                 age,
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
             return null;
         }
 
-        const userRef = doc(db, 'users', auth.currentUser.uid);
+        const userRef = doc(db, 'users', auth.currentUser.email);
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
 
         await updateProfile(auth.currentUser, { displayName: name });
 
-        const userRef = doc(db, 'users', auth.currentUser.uid);
+        const userRef = doc(db, 'users', auth.currentUser.email);
         const payload = {
             name,
             age,
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
         await reauthenticateWithCredential(auth.currentUser, credential);
         await updatePassword(auth.currentUser, newPassword);
 
-        const userRef = doc(db, 'users', auth.currentUser.uid);
+        const userRef = doc(db, 'users', auth.currentUser.email);
         await setDoc(userRef, {
             updatedAt: new Date().toISOString()
         }, { merge: true });
