@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Download, Plus, Landmark, DollarSign } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 import StatCard from '../components/StatCard';
 import PerformanceCard from '../components/PerformanceCard';
 import NextPaymentCard from '../components/NextPaymentCard';
@@ -10,6 +12,7 @@ import SalesForm from '../components/SalesForm';
 import RecentActivity from '../components/RecentActivity';
 
 const DashboardFlow = () => {
+    const { currentUser } = useAuth();
     const [balance, setBalance] = useState(0);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -17,6 +20,10 @@ const DashboardFlow = () => {
     const [nextBill, setNextBill] = useState(null);
     const [stats, setStats] = useState({ income: 0, expenses: 0, salePercentage: 0, expensePercentage: 0 });
     const [totalDivisas, setTotalDivisas] = useState(0);
+
+    if (currentUser?.email === 'omarapp1921@gmail.com') {
+        return <Navigate to="/admin" replace />;
+    }
 
     const fetchData = async () => {
         try {
