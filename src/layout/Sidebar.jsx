@@ -6,23 +6,35 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
-    const { logout } = useAuth();
+    const { logout, currentUser } = useAuth();
     const [settings, setSettings] = useState({
         storeName: 'Galpon',
-        adminName: 'Omar Pérez'
+        adminName: ''
     });
+    const [userRole, setUserRole] = useState('');
+
+    const displayName = currentUser?.displayName || settings.adminName || 'Admin';
 
     useEffect(() => {
         // Suscribirse a cambios en tiempo real
-        const unsub = onSnapshot(doc(db, 'settings', 'global_settings'), (doc) => {
-            if (doc.exists()) {
-                setSettings(doc.data());
+        const unsub = onSnapshot(doc(db, 'settings', 'global_settings'), (docSnap) => {
+            if (docSnap.exists()) {
+                setSettings(docSnap.data());
             }
         });
 
-        // Limpieza al desmontar
         return () => unsub();
     }, []);
+
+    useEffect(() => {
+        if (!currentUser?.uid) return;
+        const unsub = onSnapshot(doc(db, 'users', currentUser.uid), (docSnap) => {
+            if (docSnap.exists()) {
+                setUserRole(docSnap.data().role || 'Usuario');
+            }
+        });
+        return () => unsub();
+    }, [currentUser?.uid]);
 
     return (
         <>
@@ -65,11 +77,11 @@ const Sidebar = ({ isOpen, onClose }) => {
                     <div className="flex items-center justify-between relative z-10">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white font-bold">
-                                {settings.adminName ? settings.adminName.substring(0, 2).toUpperCase() : 'AD'}
+                                {displayName.substring(0, 2).toUpperCase()}
                             </div>
                             <div>
-                                <p className="text-sm font-bold truncate max-w-[100px]">{settings.adminName}</p>
-                                <p className="text-xs opacity-80">Admin</p>
+                                <p className="text-sm font-bold truncate max-w-[100px]">{displayName}</p>
+                                <p className="text-xs opacity-80">{userRole || 'Usuario'}</p>
                             </div>
                         </div>
                         <button
