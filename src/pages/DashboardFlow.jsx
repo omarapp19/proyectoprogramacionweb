@@ -113,7 +113,7 @@ const DashboardFlow = () => {
                 </div>
                 <div className="flex gap-3">
                     <button
-                        className="btn btn-outline flex items-center gap-2 bg-white"
+                        className="btn btn-outline flex items-center gap-2 bg-white hover:bg-primary hover:text-white hover:border-primary hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
                         onClick={handleExport}
                     >
                         <Download size={18} />

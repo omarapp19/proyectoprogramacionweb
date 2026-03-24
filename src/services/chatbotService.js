@@ -1,27 +1,5 @@
 import { api } from './api';
 
-// Función matemática de Regresión Lineal
-function calcularRegresionLineal(datos) {
-    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
-    const n = datos.length;
-    if (n === 0) return { m: 0, b: 0, predecir: () => 0 };
-
-    datos.forEach(([x, y]) => {
-        sumX += x;
-        sumY += y;
-        sumXY += x * y;
-        sumX2 += x * x;
-    });
-
-    const denominador = (n * sumX2 - sumX * sumX);
-    if (denominador === 0) return { m: 0, b: sumY / n, predecir: () => sumY / n };
-
-    const m = (n * sumXY - sumX * sumY) / denominador; 
-    const b = (sumY - m * sumX) / n;
-
-    return { m, b, predecir: (x) => m * x + b };
-}
-
 // Recopila el contexto financiero
 async function obtenerContextoFinanciero() {
     try {
@@ -31,42 +9,35 @@ async function obtenerContextoFinanciero() {
             api.getUpcomingBill()
         ]);
 
-        // Calcular regresión de ingresos de los últimos 30 días
-        const ingresosPorDia = {};
+        // Calcular promedio diario de ingresos últimos 30 días
+        let ingresosUltimos30Dias = 0;
         const hoy = new Date();
-        hoy.setHours(0,0,0,0);
+        hoy.setHours(23,59,59,999);
         const hace30Dias = new Date(hoy);
         hace30Dias.setDate(hace30Dias.getDate() - 30);
+        hace30Dias.setHours(0,0,0,0);
 
         transacciones.forEach(tx => {
             if (tx.type === 'INGRESO' && tx.date) {
                 const txDate = new Date(tx.date);
                 if (txDate >= hace30Dias && txDate <= hoy) {
-                    const diffDays = Math.ceil(Math.abs(txDate - hace30Dias) / (1000 * 60 * 60 * 24)); 
-                    ingresosPorDia[diffDays] = (ingresosPorDia[diffDays] || 0) + parseFloat(tx.amount || 0);
+                    ingresosUltimos30Dias += parseFloat(tx.amount || 0);
                 }
             }
         });
 
-        const datosRegresion = [];
-        for (let i = 0; i <= 30; i++) {
-            datosRegresion.push([i, ingresosPorDia[i] || 0]);
-        }
-
-        const modelo = calcularRegresionLineal(datosRegresion);
-        const tendencia = modelo.m > 0 ? "al alza (creciendo)" : "a la baja (disminuyendo)";
-        const prediccionMañana = Math.max(0, modelo.predecir(31));
+        const promedioDiario = ingresosUltimos30Dias / 30;
 
         return `
         DATOS FINANCIEROS ACTUALES:
         - Balance Total Disponible: $${balance.balance}
-        - Ingresos Históricos: $${balance.totalIncome}
-        - Gastos Históricos: $${balance.totalExpense}
-        - Próxima factura por pagar: ${proximaFactura ? `${proximaFactura.description} por $${proximaFactura.amount} (Vence: ${proximaFactura.dueDate})` : 'Ninguna'}
+        - Ingresos Históricos Generales: $${balance.totalIncome}
+        - Gastos Históricos Generales: $${balance.totalExpense}
+        - Próxima factura por pagar: ${proximaFactura ? `${proximaFactura.title || proximaFactura.description || 'Factura'} por $${proximaFactura.amount} (Vence: ${proximaFactura.dueDate})` : 'Ninguna'}
         
-        ANÁLISIS PREDICTIVO (Regresión Lineal a 30 días):
-        - Tendencia de ingresos: ${tendencia}
-        - Predicción matemática de ingresos para mañana: $${prediccionMañana.toFixed(2)}
+        ANÁLISIS PREDICTIVO (Promedio Histórico):
+        - Ventas promedio por día (últimos 30 días): $${promedioDiario.toFixed(2)}
+        - Estimación matemática de ingresos para mañana: $${promedioDiario.toFixed(2)}
         `;
     } catch (error) {
         console.error("Error obteniendo contexto:", error);
@@ -88,7 +59,7 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
         1. Responde de manera concisa, profesional y amigable.
         2. Si te preguntan por predicciones o el futuro, utiliza los datos del análisis predictivo que te proporciono.
         3. Nunca inventes datos. Si no sabes algo o no está en el contexto, di que no tienes esa información.
-        4. Usa formato Markdown (negritas, listas) para hacer la lectura más fácil.
+        4. Escribe en texto plano sin usar formato Markdown (ni asteriscos, ni negritas) ya que el sistema no lo renderiza. Usa guiones para listas.
     `;
 
     // 2. Obtener la API Key desde las variables de entorno de Vite

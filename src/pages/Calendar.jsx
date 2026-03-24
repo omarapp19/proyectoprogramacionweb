@@ -4,11 +4,21 @@ import { api } from '../services/api';
 import DayDetailsPanel from '../components/DayDetailsPanel';
 import BillFormModal from '../components/BillFormModal';
 
-const CalendarPage = () => {
-    const [selectedDate, setSelectedDate] = useState(null);
+const CalendarPage = ({ initialDate }) => {
+    const parseInitialDate = () => {
+        if (!initialDate) return null;
+        try {
+            const dateStr = typeof initialDate === 'string' ? initialDate.split('T')[0] : '';
+            if (!dateStr) return null;
+            const [y, m, d] = dateStr.split('-').map(Number);
+            return new Date(y, m - 1, d, 12, 0, 0);
+        } catch(e) { return null; }
+    };
+
+    const [selectedDate, setSelectedDate] = useState(parseInitialDate());
     const [bills, setBills] = useState([]);
     const [transactions, setTransactions] = useState([]);
-    const [currentDate, setCurrentDate] = useState(new Date());
+    const [currentDate, setCurrentDate] = useState(parseInitialDate() || new Date());
     const [showModal, setShowModal] = useState(false);
 
     const fetchData = async () => {

@@ -43,7 +43,7 @@ const NextPaymentCard = ({ bill }) => {
 
             <div
                 className="mt-4 pl-2 flex items-center gap-2 text-sm font-bold text-primary cursor-pointer hover:gap-3 transition-all group"
-                onClick={() => !bill && setShowCalendar(true)}
+                onClick={() => setShowCalendar(true)}
             >
                 {bill ? 'Ver detalles' : 'Ver calendario'} <ArrowRight size={16} className="group-hover:text-primary transition-colors" />
             </div>
@@ -54,7 +54,7 @@ const NextPaymentCard = ({ bill }) => {
                         <button onClick={() => setShowCalendar(false)} className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors bg-white rounded-full p-1 shadow">
                             <X size={20} />
                         </button>
-                        <CalendarPage />
+                        <CalendarPage initialDate={bill ? bill.dueDate : null} />
                     </div>
                 </div>
             )}

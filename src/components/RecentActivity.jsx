@@ -25,7 +25,7 @@ const RecentActivity = ({ transactions = [], onTransactionDeleted }) => {
         if (!groups[displayDate]) {
             groups[displayDate] = { total: 0, transactions: [], rawDate: dateStr };
         }
-        if (tx.type === 'INCOME') {
+        if (tx.type === 'INGRESO') {
             groups[displayDate].total += tx.amount;
         } else {
             groups[displayDate].total -= tx.amount;
