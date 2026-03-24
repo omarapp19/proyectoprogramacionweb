@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, ArrowRightLeft, FileText, PieChart, Settings, LogOut, DollarSign, Bot, Calendar } from 'lucide-react';
+import { LayoutDashboard, ArrowRightLeft, FileText, PieChart, Settings, LogOut, DollarSign, Bot, Calendar, Users } from 'lucide-react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { db } from '../firebase'; // Importamos la base de datos de Firebase
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -64,6 +64,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                     <NavItem to="/daily-sales" icon={<DollarSign size={20} />} label="Ventas Diarias" onClick={onClose} />
                     <NavItem to="/invoices" icon={<FileText size={20} />} label="Facturas" onClick={onClose} />
                     <NavItem to="/calendar" icon={<Calendar size={20} />} label="Calendario" onClick={onClose} />
+                    
+                    {currentUser?.email === 'omarapp1921@gmail.com' && (
+                        <NavItem to="/admin" icon={<Users size={20} />} label="Panel de Control" onClick={onClose} />
+                    )}
 
                     {/* Divider or Spacer */}
                     <div className="flex-1"></div>

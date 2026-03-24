@@ -7,6 +7,7 @@ import Configuration from './pages/Configuration';
 import Invoices from './pages/Invoices';
 import DailySales from './pages/DailySales';
 import Login from './pages/Login';
+import AdminPanel from './pages/AdminPanel';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -35,6 +36,7 @@ function App() {
             <Route path="daily-sales" element={<DailySales />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="settings" element={<Configuration />} />
+            <Route path="admin" element={<AdminPanel />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -184,5 +184,15 @@ export const api = {
         await updateDoc(doc(db, 'bills', id), updateData);
         return { id, ...updateData };
     },
+
+    getAllUsers: async () => {
+        try {
+            const snapshot = await getDocs(collection(db, 'users'));
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            console.error("Error fetching all users:", error);
+            return [];
+        }
+    }
 };
 
