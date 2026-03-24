@@ -3,11 +3,17 @@ import { api } from './api';
 // Recopila el contexto financiero
 async function obtenerContextoFinanciero() {
     try {
-        const [balance, transacciones, proximaFactura] = await Promise.all([
+        const [balance, transacciones, facturas] = await Promise.all([
             api.getBalance(),
             api.getTransactions(),
-            api.getUpcomingBill()
+            api.getBills()
         ]);
+
+        // Separar facturas pendientes
+        const facturasPendientes = facturas.filter(f => f.status === 'PENDIENTE');
+        const listaFacturas = facturasPendientes.length > 0 
+            ? facturasPendientes.map(f => `- ${f.title || f.description || 'Factura'}: $${f.amount} (Vence: ${f.dueDate})`).join('\n        ')
+            : '- Ninguna factura pendiente registrada.';
 
         // Calcular promedio diario de ingresos últimos 30 días
         let ingresosUltimos30Dias = 0;
@@ -33,7 +39,9 @@ async function obtenerContextoFinanciero() {
         - Balance Total Disponible: $${balance.balance}
         - Ingresos Históricos Generales: $${balance.totalIncome}
         - Gastos Históricos Generales: $${balance.totalExpense}
-        - Próxima factura por pagar: ${proximaFactura ? `${proximaFactura.title || proximaFactura.description || 'Factura'} por $${proximaFactura.amount} (Vence: ${proximaFactura.dueDate})` : 'Ninguna'}
+        
+        FACTURAS PENDIENTES POR PAGAR:
+        ${listaFacturas}
         
         ANÁLISIS PREDICTIVO (Promedio Histórico):
         - Ventas promedio por día (últimos 30 días): $${promedioDiario.toFixed(2)}
