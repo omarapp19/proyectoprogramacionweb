@@ -71,13 +71,13 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
 
     // 3. Llamada a la API REST de Gemini
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                system_instruction: {
+                systemInstruction: {
                     parts: [{ text: systemPrompt }]
                 },
                 contents: [{
@@ -88,7 +88,8 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
         });
 
         if (!response.ok) {
-            throw new Error(`Error en la API: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`Error ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
@@ -98,6 +99,6 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
 
     } catch (error) {
         console.error("Error al contactar a Gemini:", error);
-        return "Lo siento, estoy teniendo problemas de conexión con mis servidores de IA en este momento. Intenta de nuevo más tarde.";
+        return `Error del servidor de IA: ${error.message}`;
     }
 }
