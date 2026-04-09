@@ -53,8 +53,8 @@ const ImportAssistant = () => {
         setIsTyping(true);
 
         try {
-            // Llamada al servicio pasando el texto actual y el historial de mensajes
-            const botResponse = await enviarMensajeChatbot(userText, messages);
+            // Enviamos solo los últimos 10 mensajes para optimizar el contexto
+            const botResponse = await enviarMensajeChatbot(userText, messages.slice(-10));
             
             setMessages(prev => [...prev, { id: Date.now(), type: 'bot', text: botResponse }]);
         } catch (error) {
