@@ -71,42 +71,48 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
     `;
 
     // 2. Obtener la API Key desde las variables de entorno de Vite
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
 
     if (!apiKey) {
-        return "⚠️ Error: No pude encontrar la API Key de Google Gemini. Si acabas de modificar tu archivo .env, es OBLIGATORIO que detengas el servidor local (Ctrl + C en la terminal) y vuelvas a ejecutar 'npm run dev' para que el sistema reconozca tu nueva contraseña oculta.";
+        return "⚠️ Error: No pude encontrar la API Key de OpenRouter. Si acabas de modificar tu archivo .env, es OBLIGATORIO que detengas el servidor local (Ctrl + C en la terminal) y vuelvas a ejecutar 'npm run dev' para que el sistema reconozca tu nueva contraseña oculta.";
     }
 
-    // 3. Llamada a la API REST de Gemini
+    // 3. Llamada a la API de OpenRouter
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+                'HTTP-Referer': 'http://localhost:5173',
+                'X-Title': 'ArmaTuAntojo'
             },
             body: JSON.stringify({
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
-                contents: [{
-                    role: "user",
-                    parts: [{ text: mensajeUsuario }]
-                }]
+                model: "meta-llama/llama-3.3-7b-instruct:free",
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: mensajeUsuario }
+                ]
             })
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Error ${response.status}: ${errorText}`);
+            const errorData = await response.json();
+            const errorMessage = errorData.error?.message || `Error ${response.status}`;
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();
         
-        // Extraer el texto de la respuesta de Gemini
-        return data.candidates[0].content.parts[0].text;
+        // Extraer el texto de la respuesta de OpenRouter
+        if (data.choices && data.choices[0] && data.choices[0].message) {
+            return data.choices[0].message.content;
+        } else {
+            throw new Error("Formato de respuesta inesperado de OpenRouter");
+        }
 
     } catch (error) {
-        console.error("Error al contactar a Gemini:", error);
+        console.error("Error al contactar a OpenRouter:", error);
         return `Error del servidor de IA: ${error.message}`;
     }
 }
