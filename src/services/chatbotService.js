@@ -88,7 +88,7 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
                 'X-Title': 'ArmaTuAntojo'
             },
             body: JSON.stringify({
-                model: "meta-llama/llama-3.3-7b-instruct:free",
+                model: "google/gemini-2.0-flash-lite-preview-02-05:free",
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: mensajeUsuario }
