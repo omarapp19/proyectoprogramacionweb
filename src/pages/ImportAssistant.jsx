@@ -53,8 +53,8 @@ const ImportAssistant = () => {
         setIsTyping(true);
 
         try {
-            // Llamada al servicio que tiene la Regresión Lineal y la conexión a la IA
-            const botResponse = await enviarMensajeChatbot(userText);
+            // Llamada al servicio pasando el texto actual y el historial de mensajes
+            const botResponse = await enviarMensajeChatbot(userText, messages);
             
             setMessages(prev => [...prev, { id: Date.now(), type: 'bot', text: botResponse }]);
         } catch (error) {

@@ -54,7 +54,7 @@ async function obtenerContextoFinanciero() {
 }
 
 // Función principal para interactuar con la IA
-export async function enviarMensajeChatbot(mensajeUsuario) {
+export async function enviarMensajeChatbot(mensajeUsuario, historial = []) {
     const contexto = await obtenerContextoFinanciero();
 
     // 1. Instrucciones para la IA (System Prompt)
@@ -70,14 +70,20 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
         4. Escribe en texto plano sin usar formato Markdown (ni asteriscos, ni negritas) ya que el sistema no lo renderiza. Usa guiones para listas.
     `;
 
-    // 2. Obtener la API Key desde las variables de entorno de Vite
+    // 2. Mapear el historial al formato de OpenRouter
+    const historialMapeado = historial.map(msg => ({
+        role: msg.type === 'bot' ? 'assistant' : 'user',
+        content: msg.text
+    }));
+
+    // 3. Obtener la API Key desde las variables de entorno de Vite
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
 
     if (!apiKey) {
         return "⚠️ Error: No se encontró la API Key (VITE_OPENROUTER_API_KEY).";
     }
 
-    // 3. Llamada a la API de OpenRouter
+    // 4. Llamada a la API de OpenRouter
     try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: 'POST',
@@ -91,6 +97,7 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
                 model: "openrouter/free",
                 messages: [
                     { role: "system", content: systemPrompt },
+                    ...historialMapeado,
                     { role: "user", content: mensajeUsuario }
                 ]
             })
