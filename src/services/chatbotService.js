@@ -74,7 +74,7 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
 
     if (!apiKey) {
-        return "⚠️ Error: No pude encontrar la API Key de OpenRouter. Si acabas de modificar tu archivo .env, es OBLIGATORIO que detengas el servidor local (Ctrl + C en la terminal) y vuelvas a ejecutar 'npm run dev' para que el sistema reconozca tu nueva contraseña oculta.";
+        return "⚠️ Error: No se encontró la API Key (VITE_OPENROUTER_API_KEY).";
     }
 
     // 3. Llamada a la API de OpenRouter
@@ -82,10 +82,10 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': 'http://localhost:5173',
-                'X-Title': 'proyectoprogramacionweb'
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`,
+                "HTTP-Referer": "http://localhost:5173",
+                "X-Title": "ArmaTuAntojo"
             },
             body: JSON.stringify({
                 model: "openrouter/free",
@@ -96,19 +96,21 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
             })
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-            const errorData = await response.json();
-            const errorMessage = errorData.error?.message || `Error ${response.status}`;
+            // Loguear el error detallado de OpenRouter para diagnóstico
+            console.error("Detalle del error de OpenRouter:", data);
+            const errorMessage = data.error?.message || `Error ${response.status}`;
             throw new Error(errorMessage);
         }
 
-        const data = await response.json();
-
         // Extraer el texto de la respuesta de OpenRouter
-        if (data.choices && data.choices[0] && data.choices[0].message) {
+        if (data.choices && data.choices[0]?.message?.content) {
             return data.choices[0].message.content;
         } else {
-            throw new Error("Formato de respuesta inesperado de OpenRouter");
+            console.error("Respuesta inesperada:", data);
+            throw new Error("El servidor de IA no devolvió un formato válido.");
         }
 
     } catch (error) {
