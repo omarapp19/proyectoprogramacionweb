@@ -85,7 +85,7 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
                 'HTTP-Referer': 'http://localhost:5173',
-                'X-Title': 'ArmaTuAntojo'
+                'X-Title': 'proyectoprogramacionweb'
             },
             body: JSON.stringify({
                 model: "openrouter/free",
