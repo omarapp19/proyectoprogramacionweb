@@ -11,17 +11,17 @@ async function obtenerContextoFinanciero() {
 
         // Separar facturas pendientes
         const facturasPendientes = facturas.filter(f => f.status === 'PENDIENTE');
-        const listaFacturas = facturasPendientes.length > 0 
+        const listaFacturas = facturasPendientes.length > 0
             ? facturasPendientes.map(f => `- ${f.title || f.description || 'Factura'}: $${f.amount} (Vence: ${f.dueDate})`).join('\n        ')
             : '- Ninguna factura pendiente registrada.';
 
         // Calcular promedio diario de ingresos últimos 30 días
         let ingresosUltimos30Dias = 0;
         const hoy = new Date();
-        hoy.setHours(23,59,59,999);
+        hoy.setHours(23, 59, 59, 999);
         const hace30Dias = new Date(hoy);
         hace30Dias.setDate(hace30Dias.getDate() - 30);
-        hace30Dias.setHours(0,0,0,0);
+        hace30Dias.setHours(0, 0, 0, 0);
 
         transacciones.forEach(tx => {
             if (tx.type === 'INGRESO' && tx.date) {
@@ -56,7 +56,7 @@ async function obtenerContextoFinanciero() {
 // Función principal para interactuar con la IA
 export async function enviarMensajeChatbot(mensajeUsuario) {
     const contexto = await obtenerContextoFinanciero();
-    
+
     // 1. Instrucciones para la IA (System Prompt)
     const systemPrompt = `
         Eres un asistente financiero experto integrado en un sistema de gestión de negocios. 
@@ -88,7 +88,7 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
                 'X-Title': 'ArmaTuAntojo'
             },
             body: JSON.stringify({
-                model: "meta-llama/llama-3.3-70b-instruct:free",
+                model: "openrouter/free",
                 messages: [
                     { role: "system", content: systemPrompt },
                     { role: "user", content: mensajeUsuario }
@@ -103,7 +103,7 @@ export async function enviarMensajeChatbot(mensajeUsuario) {
         }
 
         const data = await response.json();
-        
+
         // Extraer el texto de la respuesta de OpenRouter
         if (data.choices && data.choices[0] && data.choices[0].message) {
             return data.choices[0].message.content;
